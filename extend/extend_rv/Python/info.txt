@@ -1,0 +1,7 @@
+clip gap:
+move forward
+move backward
+change cut in, cut out
+
+scene:
+refresh(view changed, seq/stack)

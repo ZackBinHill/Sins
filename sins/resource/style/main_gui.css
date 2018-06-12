@@ -1,0 +1,33 @@
+
+
+QTabWidget#MainWindow{
+    background:rgb(225, 225, 225);
+    border:none;
+}
+QTabWidget#MainWindow::pane{
+    border-width:0px;
+    background:rgb(70, 70, 70);
+}
+QTabWidget#MainWindow::tab-bar{
+    border-width:0px;
+}
+QTabBar#MainWindow_TabBar::scroller {
+    width:25;
+    border:0;
+    padding: 0px;
+}
+QTabBar#MainWindow_TabBar::tab{
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    min-width:250px;
+    min-height:30px;
+    padding: 0px;
+    border-image: url(%s/ui/tab_normal.png);
+}
+QTabBar#MainWindow_TabBar::tab:hover {
+    border-image: url(%s/ui/tab_hover.png);
+}
+QTabBar#MainWindow_TabBar::tab:selected {
+    border-image: url(%s/ui/tab_select.png);
+}
+

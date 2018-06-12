@@ -1,0 +1,10 @@
+QLabel#projectLabel{
+    border:none;
+    color:rgb(70, 70, 70);
+    background:rgb(210, 210, 210);
+}
+
+QTabWidget#ProjectMainWindowTab::pane{
+    border:none;
+}
+

@@ -1,0 +1,70 @@
+QScrollBar{
+    background:rgb(0, 0, 0, 0);
+    margin:0px, 0px, 0px, 0px;
+}
+QScrollBar:vertical{
+    width:12px;
+    padding-top:12px;
+    padding-bottom:12px;
+}
+QScrollBar:horizontal{
+    height:12px;
+    padding-left:12px;
+    padding-right:12px;
+}
+QScrollBar::handle
+{
+    background:rgb(0, 0, 0, 50);
+    border-radius:4px;
+}
+QScrollBar::handle:vertical
+{
+    width:12px;
+}
+QScrollBar::handle:horizontal
+{
+    height:12px;
+}
+QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover
+{
+    background:rgb(0, 0, 0, 70);
+}
+
+QScrollBar::add-line:vertical
+{
+    height:12px;
+    width:10px;
+    border-image:url(%s/button/arrow_down1_darkgray.png);
+    subcontrol-position:bottom;
+}
+QScrollBar::sub-line:vertical
+{
+    height:12px;
+    width:10px;
+    border-image:url(%s/button/arrow_up1_darkgray.png);
+    subcontrol-position:top;
+}
+QScrollBar::add-line:horizontal
+{
+    height:12px;
+    width:10px;
+    border-image:url(%s/button/arrow_left1_darkgray.png);
+    subcontrol-position:left;
+}
+QScrollBar::sub-line:horizontal
+{
+    height:12px;
+    width:10px;
+    border-image:url(%s/button/arrow_right1_darkgray.png);
+    subcontrol-position:right;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical,
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal{
+    background: none;
+}
+
+
+
+
+
+

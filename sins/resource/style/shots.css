@@ -1,0 +1,33 @@
+
+QTabWidget#ShotTabWindow::pane{
+    border:none;
+    background:rgb(230, 230, 230);
+}
+QTabBar#ShotTabWindow_TabBar::tab{
+    background:rgb(200, 200, 200);
+    min-height:25px;
+    min-width: 35px;
+}
+QTabBar#ShotTabWindow_TabBar::tab:hover{
+    background:rgb(200, 200, 200);
+}
+QTabBar#ShotTabWindow_TabBar::tab:selected{
+    background:rgb(230, 230, 230);
+}
+
+QTextEdit{
+    border:none;
+    background:rgb(240, 240, 240);
+}
+QScrollArea{
+    border:none;
+    background:rgb(240, 240, 240);
+}
+
+QSplitter{
+    /*border:none;*/
+    background:rgb(240, 240, 240);
+}
+QSplitter::handle{
+    image: url(%s/ui/splitter_horizontal.png);
+}

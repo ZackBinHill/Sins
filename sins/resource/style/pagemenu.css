@@ -1,0 +1,27 @@
+*{
+    outline:0px;
+}
+QMenu{
+    background:white;
+    border:none;
+}
+QMenu::item{
+    padding:5px 20px 5px 30px;
+}
+QMenu::item:selected{
+    background:rgb(190,190,190)
+}
+/*QMenu::item:disabled{*/
+    /*background:transparent;*/
+    /*padding:5px 20px 5px 15px;*/
+/*}*/
+/*QMenu::item:disabled{*/
+    /*color:gray;*/
+/*}*/
+QLabel#Separator{
+    padding:5px 20px 5px 10px;
+    min-height: 20px;
+    color: gray;
+    font-size: 15px;
+    font-family: Arial;
+}

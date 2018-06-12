@@ -1,0 +1,118 @@
+*{
+    outline:0px;
+}
+QWidget{
+    color:rgb(220, 220, 220);
+    background:rgb(37, 53, 57);
+    border:none;
+}
+
+QLabel{
+    background:transparent;
+}
+
+QLabel#VersionNameWidget{
+    background:rgb(25, 45, 55);
+    border:1px solid gray;
+    border-radius: 3px;
+}
+
+QSplitter::handle{
+    image: url(%s/ui/splitter_vertical.png);
+}
+
+
+QTreeWidget{
+    background-color:rgb(40, 40, 40);
+    font-size:17px;
+    color: rgb(220, 220, 220);
+    border:none;
+    outline:0px;
+}
+
+QTreeWidget::item{
+    background-clip: margin;
+}
+
+QTreeWidget::item:hover{
+    background: rgb(65, 97, 115);
+}
+QTreeWidget::item:selected{
+    background: rgb(63, 147, 168);
+}
+
+/*QTreeWidget::branch:selected{*/
+    /*background: rgb(63, 147, 168);*/
+/*}*/
+QTreeWidget::branch:has-children:closed:has-siblings:adjoins-item,
+QTreeWidget::branch:has-children:closed:!has-siblings:adjoins-item{
+    image:url(%s/icon/tree_closed_gray.png)
+}
+QTreeWidget::branch:has-children:open:has-siblings:adjoins-item,
+QTreeWidget::branch:has-children:open:!has-siblings:adjoins-item{
+    image:url(%s/icon/tree_open_gray.png)
+}
+
+QScrollBar{
+    background:rgb(0, 0, 0, 0);
+    margin:0px, 0px, 0px, 0px;
+}
+QScrollBar:vertical{
+    width:12px;
+    padding-top:12px;
+    padding-bottom:12px;
+}
+QScrollBar:horizontal{
+    height:12px;
+    padding-left:12px;
+    padding-right:12px;
+}
+QScrollBar::handle
+{
+    background:rgb(200, 200, 200, 50);
+    border-radius:4px;
+}
+QScrollBar::handle:vertical
+{
+    width:12px;
+}
+QScrollBar::handle:horizontal
+{
+    height:12px;
+}
+QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover
+{
+    background:rgb(200, 200, 200, 100);
+}
+QScrollBar::add-line:vertical
+{
+    height:12px;
+    width:10px;
+    border-image:url(%s/button/arrow_down1_gray.png);
+    subcontrol-position:bottom;
+}
+QScrollBar::sub-line:vertical
+{
+    height:12px;
+    width:10px;
+    border-image:url(%s/button/arrow_up1_gray.png);
+    subcontrol-position:top;
+}
+QScrollBar::add-line:horizontal
+{
+    height:10px;
+    width:12px;
+    border-image:url(%s/button/arrow_left1_gray.png);
+    subcontrol-position:left;
+}
+QScrollBar::sub-line:horizontal
+{
+    height:10px;
+    width:12px;
+    border-image:url(%s/button/arrow_right1_gray.png);
+    subcontrol-position:right;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical,
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal{
+    background: none;
+}
