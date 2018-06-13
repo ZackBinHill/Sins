@@ -57,7 +57,7 @@ field属性全部从config文件获取
 advanced group
 
 优化查询速度prefetch 需要大量数据测试
-优化表格刷新速度
+优化表格刷新速度 > refresh速度最快为0.3s(50行全部为label), 最慢为0.5s(全部为textedit)
 
 数据表默认过滤
 status icon referred_table 编辑
