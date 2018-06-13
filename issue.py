@@ -19,7 +19,7 @@
 # infield 添加widget_attr_map
 # 没有group时sort问题
 # 需要新的order方法
-加密md5
+# 加密md5
 # parent children 取代seq shot等
 # connection表需要created等
 # processEvent优化

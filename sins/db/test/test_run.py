@@ -8,6 +8,7 @@ import time
 import datetime
 from sins.db.test.db_test05 import *
 from sins.db import default
+from sins.utils.encrypt import do_hash
 from test_person import gen_one_gender_word
 
 test_data_folder = os.path.join(os.path.dirname(__file__), 'data').replace('\\', '/')
@@ -62,7 +63,7 @@ Person.create(**root_data)
 print '# ------------test person data------------ #'
 person_data = [{
     'user_login': 'john',
-    'user_pwd': '123456',
+    'user_pwd': do_hash(u'123456'),
     'first_name': 'Huan',
     'last_name': 'Xing',
     'full_name': 'Xing Huan',

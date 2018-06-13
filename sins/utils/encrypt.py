@@ -5,7 +5,7 @@
 
 import base64
 from Crypto.Cipher import AES
-
+from hashlib import sha1
 
 key = '123456'
 
@@ -37,7 +37,15 @@ def do_decrypt(text):
     return decrypted_text.replace('\0', '')
 
 
+def do_hash(text):
+    sha = sha1()
+    sha.update(text.encode('utf8'))
+    result = sha.hexdigest()
+    return result
+
+
 if __name__ == '__main__':
     encrypt_text = do_encrypt('john_password')
     print(encrypt_text)
     print(do_decrypt(encrypt_text))
+    print(do_hash('john_password'))
