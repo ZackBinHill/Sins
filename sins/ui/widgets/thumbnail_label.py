@@ -17,7 +17,11 @@ MAX_CACHE_FRAMES = 50.0
 
 class ThumbnailLabel(QWidget):
     cacheDone = Signal()
-    def __init__(self, parent=None, dynamic=False, has_button=False, background='black'):
+    def __init__(self,
+                 parent=None,
+                 dynamic=False,
+                 has_button=False,
+                 background='black'):
         super(ThumbnailLabel, self).__init__(parent)
 
         self.dynamic = dynamic

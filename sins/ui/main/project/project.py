@@ -105,9 +105,9 @@ class ProjectMainWindow(CustomTabWindow, PropertyWidget):
         if self.coreproperty_apply:
             logger.debug((self.__class__.__name__, kwargs))
             if 'showId' not in kwargs and 'showName' in kwargs:
-                self.showId = Project.get(name=self.showName).id
+                self.showId = Project.get(code=self.showName).id
             if 'showName' not in kwargs and 'showId' in kwargs:
-                self.showName = Project.get(id=self.showId).name
+                self.showName = Project.get(id=self.showId).code
             self.projectLabel.setText(self.showName)
             self.mediaWindow.set_core_property(showList=[self.showId, ])
             self.shotsWindow.set_core_property(showId=self.showId)
@@ -141,10 +141,10 @@ class OtherMenu(QMenu):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     panel = ProjectMainWindow()
-    panel.set_core_property(**{"showId":1, "showName":"DRM"})
+    # panel.set_core_property(**{"showId":1, "showName":"DRM"})
     # panel.surl = [{'pagename': 'Project', 'coreproperty': {'showName': 'DRM'}}]
     # panel.to_tab("Shots")
     # panel.apply_page_data('sins://page/Media')
-    panel.apply_page_data('sins://page/Shots/Detail?showId=1&shotId=1')
+    # panel.apply_page_data('sins://page/Shots/Detail?showId=1&shotId=1')
     panel.show()
     app.exec_()

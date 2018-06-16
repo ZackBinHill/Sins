@@ -18,6 +18,19 @@ class ClockWidget(QWidget):
         self.minPen = QPen(self.minuteColor)
         self.minPen.setWidth(3)
 
+        self.lineEdit = QTextEdit()
+        self.lineEdit.setText('aaa中文')
+        text = self.lineEdit.toPlainText()
+        print type(text)
+        print str(text.toAscii()), type(text.toAscii())
+        print unicode('aaa中文', 'utf-8')
+        print unicode(str(text.toAscii()), 'utf-8')
+        print u'{}aaa'.format('aaa')
+        # print u'{}aaa'.format('aaa中文')
+        print u'{}aaa'.format(u'aaa中文')
+        print '{}aaa'.format(str(text.toAscii()))
+        # print '{}aaa'.format(u'aaa中文')
+
         self.time = datetime.datetime.now()
 
     def set_time(self, time):

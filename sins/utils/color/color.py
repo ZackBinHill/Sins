@@ -136,6 +136,7 @@ def get_lum(color_rgb):
 
 
 if __name__ == "__main__":
+    print rgba_to_int10([87, 212, 113])
     print rgba_to_int10([1, 1, 1])
     print rgba_to_int10([1.0, 0.3764705882352941, 0.054901960784313725, 1.0])
     print int10_to_rgb(4284485375)  # 89 179 255

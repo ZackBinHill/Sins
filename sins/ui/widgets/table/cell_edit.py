@@ -51,7 +51,7 @@ class CellWidget(QWidget):
                  editable=False,
                  treeitem=None,
                  column=0,
-                 db_instence=None,
+                 db_instance=None,
                  model_attr='',
                  column_label='',
                  parent=None):
@@ -60,7 +60,7 @@ class CellWidget(QWidget):
         self.treeitem = treeitem
         self.column = column
         self.column_label = column_label
-        self.db_instence = db_instence
+        self.db_instance = db_instance
         self.model_attr = model_attr
         self.autoHeight = False
         self.targetHeight = 0
@@ -79,8 +79,8 @@ class CellWidget(QWidget):
     def set_value(self, value):
         pass
 
-    def set_db_instence(self, db_instence):
-        self.db_instence = db_instence
+    def set_db_instance(self, db_instance):
+        self.db_instance = db_instance
 
     def set_read_only(self, editable=False):
         self.editable = editable
@@ -94,20 +94,20 @@ class CellWidget(QWidget):
     def edit_finished(self):
         self.set_no_editable()
         if current_time() - self.update_db_time > 0.01:
-            # print self.db_instence, self.model_attr
-            if self.db_instence is not None and (hasattr(self.db_instence, self.model_attr)):
-                old_value = getattr(self.db_instence, self.model_attr)
-                logger.debug(u'setattr({}, {}, {})'.format(self.db_instence, self.model_attr, self.data_value))
-                setattr(self.db_instence, self.model_attr, self.data_value)
-                self.db_instence.save()
+            # print self.db_instance, self.model_attr
+            if self.db_instance is not None and (hasattr(self.db_instance, self.model_attr)):
+                old_value = getattr(self.db_instance, self.model_attr)
+                logger.debug(u'setattr({}, {}, {})'.format(self.db_instance, self.model_attr, self.data_value))
+                setattr(self.db_instance, self.model_attr, self.data_value)
+                self.db_instance.save()
                 detail = u'update {column} from {old} to {new}'.format(column=self.column_label,
                                                                         old=old_value,
                                                                         new=self.data_value)
                 LogTable.create(
-                    table_name=self.db_instence._meta.table_name,
+                    table_name=self.db_instance._meta.table_name,
                     event='UPDATE',
                     event_date=datetime.datetime.now(),
-                    event_data_id=self.db_instence.id,
+                    event_data_id=self.db_instance.id,
                     event_by=current_user,
                     detail=detail,
                 )
@@ -355,7 +355,7 @@ class CellThumbnail(CellWidget):
 
     def set_value(self, value):
         if value is not None:
-            self.thumbnailPath = value
+            self.thumbnailPath = value.host_path
             self.thumbnailLabel.create_preview(self.thumbnailPath)
             self.thumbnailLabel.cacheDone.connect(self.load_done)
 
@@ -762,7 +762,7 @@ class SexChooseEdit(CellChooseEdit):
 def get_department_choose_list():
     choose_list = []
     for department in Department.select():
-        name = department.name
+        name = department.code
         full_name = department.full_name
         color = department.color
         choose_list.append(ChooseModel(
@@ -793,7 +793,7 @@ class DepartmentChooseEdit(CellChooseEdit):
 def get_permission_group_choose_list():
     choose_list = []
     for permission in PermissionGroup.select():
-        name = permission.name
+        name = permission.code
         choose_list.append(ChooseModel(
             value=name,
             choose_text_list=[{'text': name, 'width': None}],
@@ -836,7 +836,7 @@ class PermissionGroupChooseEdit(CellChooseEdit):
 
 def get_all_status():
     choose_list = {}
-    for status in Status.select():
+    for status in prefetch(Status.select(), File):
         for model in ['Project', 'Sequence', 'Shot', 'Asset', 'Task', 'Version']:
             if model not in choose_list.keys():
                 choose_list[model] = []
@@ -844,7 +844,7 @@ def get_all_status():
                 name = status.name
                 full_name = status.full_name
                 color = status.color
-                icon = status.icon
+                icon = status.thumbnail.host_path
                 choose_list[model].append(ChooseModel(
                     value=name,
                     choose_text_list=[{'text': name, 'width': 50}, {'text': full_name, 'width': None}],
@@ -853,6 +853,7 @@ def get_all_status():
                 )
                 )
     return choose_list
+
 
 all_status_choose = get_all_status()
 

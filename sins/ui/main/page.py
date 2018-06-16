@@ -11,9 +11,9 @@ from sins.ui.widgets.tab.custom_tab import CustomTabWindow, MainTabButton, Custo
 from sins.ui.widgets.action import SeparatorAction
 from sins.utils.res import resource
 from sins.db.models import *
+from sins.db.permission import get_permission_projects
 
 
-Current_User = get_current_user()
 PageMenuStyle = resource.get_style("pagemenu")
 PageStyle = resource.get_style("page")
 
@@ -44,23 +44,27 @@ class PageWindow(CustomTabWindow):
 
         artistButton = MainTabButton("Artist")
         artistButton.defaultPage = [{"pagename":'My Task', "coreproperty":{}}]
-        artistButton.set_core_property({'personId': Person.get(user_login=Current_User).id})
+        artistButton.set_core_property({'personId': current_user_object.id})
         self.add_tab(self.artistWindow, artistButton, "Artist")
 
         projectMenu = ProjectMenu()
         projectList = []
-        for project in Person.get(user_login=Current_User).projects:
-            projectList.append({'name': project.name, 'id': project.id, 'thumb': project.thumbnail})
+        for project in get_permission_projects(current_user_object):
+            if project.thumbnail is not None:
+                thumbnail_path = project.thumbnail.host_path
+            else:
+                thumbnail_path = resource.error_pic.Error02
+            projectList.append({'name': project.code, 'id': project.id, 'thumb': thumbnail_path})
         projectMenu.refresh_list(projectList)
         self.add_tab(self.projectWindow, MainTabButton("Project", menu=projectMenu), "Project")
 
         mediaButton = MainTabButton("Media")
-        mediaButton.set_core_property({'personId': Person.get(user_login=Current_User).id})
+        mediaButton.set_core_property({'personId': current_user_object.id})
         self.add_tab(self.mediaWindow, mediaButton, "Media")
 
         self.userMneu = QMenu(self)
         self.userMneu.setStyleSheet(PageMenuStyle)
-        loginAction = SeparatorAction('Logged in as {}'.format(Current_User), self)
+        loginAction = SeparatorAction('Logged in as {}'.format(current_user), self)
         loginAction.setEnabled(False)
         aboutAction = QAction('About', self)
         profileAction = QAction('Profile', self)
@@ -103,7 +107,12 @@ class ProjectListCellWidget(QWidget):
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignCenter)
         thumnLabel = QLabel()
-        thumnLabel.setPixmap(QPixmap(projectDict["thumb"]).scaled(100, 70, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        thumnLabel.setPixmap(resource.get_pixmap(projectDict["thumb"],
+                                                 scale=[100, 56],
+                                                 aspect='expand',
+                                                 error='Error02'))
+        thumnLabel.setFixedSize(100, 56)
+        thumnLabel.setAlignment(Qt.AlignCenter)
         nameLabel = QLabel(projectDict["name"])
         arrowLabel = QLabel()
         arrowLabel.setPixmap(resource.get_pixmap("button", "arrow_right1_darkgray.png", scale=20))

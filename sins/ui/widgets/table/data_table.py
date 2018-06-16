@@ -10,6 +10,7 @@ from sins.ui.widgets.table.data_table_configs import *
 from sins.ui.widgets.action import SeparatorAction
 from sins.ui.widgets.labelbutton import QLabelButton
 from sins.db.models import *
+from sins.db.permission import is_editable
 import sys
 import copy
 import math
@@ -19,19 +20,6 @@ logger = get_logger(__name__)
 
 EDITLABEL_SIZE = 20
 FOREIGN_POPULATE_DEPTH = 2
-
-
-def is_editable(field, db_instence):
-    editable_permission = field.edit_permission
-    if current_permission in ['Manager', 'Supervisor', 'Coordinator', 'Root']:
-        return current_permission in editable_permission
-    elif current_permission == 'Read-only':
-        return False
-    elif current_permission == 'Artist' and current_permission in editable_permission:
-        if db_instence.created_by == current_user:
-            return True
-    return False
-
 
 
 class PageLabelButton(QLabelButton):
@@ -94,20 +82,20 @@ class BaseTree(QTreeWidget):
     def set_basic_filter(self, basic_filter):
         self.basic_filter = basic_filter
 
-    def get_field_data(self, data, config, db_instence=None, prefix=None, populate_depth=FOREIGN_POPULATE_DEPTH):
-        # print db_instence
-        if db_instence is not None:
+    def get_field_data(self, data, config, db_instance=None, prefix=None, populate_depth=FOREIGN_POPULATE_DEPTH):
+        # print db_instance
+        if db_instance is not None:
             prefix = '{}>{}'.format(prefix, config.config_name) if prefix is not None else config.config_name
             for index, field in enumerate(config.first_fields()):
-                # data.update({'{}>{}'.format(prefix, field.name): getattr(db_instence, field.model_attr)})
-                data.update({'{}>{}'.format(prefix, field.name): {'value': getattr(db_instence, field.model_attr),
-                                                                  'db_instence': db_instence}})
+                # data.update({'{}>{}'.format(prefix, field.name): getattr(db_instance, field.model_attr)})
+                data.update({'{}>{}'.format(prefix, field.name): {'value': getattr(db_instance, field.model_attr),
+                                                                  'db_instance': db_instance}})
             if populate_depth > 0:
                 for out_field in config.out_fields:
-                    # print out_field.model_attr, getattr(db_instence, out_field.model_attr)
+                    # print out_field.model_attr, getattr(db_instance, out_field.model_attr)
                     self.get_field_data(data,
                                    out_field.config,
-                                   db_instence=getattr(db_instence, out_field.model_attr),
+                                   db_instance=getattr(db_instance, out_field.model_attr),
                                    prefix=prefix,
                                    populate_depth=populate_depth - 1)
 
@@ -259,7 +247,7 @@ class BaseTree(QTreeWidget):
                 data = {}
                 # print row.id, row.sequence.name
                 # data.update({'object': row})
-                self.get_field_data(data, self.config, db_instence=row)
+                self.get_field_data(data, self.config, db_instance=row)
                 self.rootDataGroup.append(DataItem(data))
                 # print data
             for group_field_name in self.currentGroups:
@@ -352,8 +340,9 @@ class BaseTree(QTreeWidget):
 
         if field_name in data.keys():
             cellWidget.set_value(data[field_name]['value'])
-            cellWidget.set_db_instence(data[field_name]['db_instence'])
-            cellWidget.set_read_only(is_editable(field, data[field_name]['db_instence']))
+            cellWidget.set_db_instance(data[field_name]['db_instance'])
+            cellWidget.set_read_only(is_editable(editable_permission=field.edit_permission,
+                                                 db_instance=data[field_name]['db_instance']))
         if not field.readonly:
             cellWidget.add_front()
         self.setItemWidget(item, index, cellWidget)
@@ -1237,7 +1226,7 @@ if __name__ == "__main__":
     # panel = PersonTree()
     # panel = CellTextEdit()
     panel.show()
-    # panel.load_config(config=person_config)
+    panel.load_config(config=person_config)
     # panel.load_config(config=status_config)
     # panel.load_config(config=project_config)
     # panel.load_config(config=group_config)
@@ -1247,7 +1236,7 @@ if __name__ == "__main__":
     # panel.load_config(config=assetType_config)
     # panel.load_config(config=tag_config)
     # panel.load_config(config=asset_config)
-    panel.load_config(config=shot_config)
+    # panel.load_config(config=shot_config)
     # panel.load_config(config=task_config)
     panel.refresh()
     app.exec_()

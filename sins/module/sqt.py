@@ -37,6 +37,13 @@ def loadUI(uifile, parent):
     QtCompat.loadUi(uifile=uifile, baseinstance=parent)
 
 
+def to_unicode(qstring):
+    if isinstance(qstring, (str, unicode)):
+        return qstring
+    else:
+        return unicode(str(qstring.toAscii()), 'utf-8')
+
+
 # for pycharm auto complete
 if False:
     from PySide2.QtCore import *

@@ -1,0 +1,811 @@
+#! D:/Program Files/Nuke10.5v2/nuke-10.5.2.dll -nx
+version 10.5 v2
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="-9" y="-9" w="1938" h="1064" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="46"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="989" stretch="1"/>
+            <splitter orientation="2">
+                <split size="819"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="171"/>
+                <dock id="" activePageId="DopeSheet.1">
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="877"/>
+            <splitter orientation="2">
+                <split size="495"/>
+                <dock id="" activePageId="Properties.1">
+                    <page id="Properties.1"/>
+                    <page id="uk.co.thefoundry.scripteditor.1"/>
+                    <page id="ProjectManager"/>
+                </dock>
+                <split size="495"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                </dock>
+            </splitter>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name F:/Temp/pycharm/Sins_project/Sins/sins/resource/other/other.nk
+ last_frame 1
+ format "256 256 0 0 256 256 1 square_256"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color {0.08407999575 0.07400000095 0.200000003 1}
+ name Constant9
+ xpos 731
+ ypos 102
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color {0 0 0 1}
+ name Constant7
+ xpos 487
+ ypos 102
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color {0.5 0.5 0.5 1}
+ name Constant5
+ xpos 253
+ ypos 100
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color 1
+ name Constant4
+ xpos 119
+ ypos 102
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color {0.02600000054 0.02600000054 0.02600000054 1}
+ name Constant6
+ xpos 375
+ ypos 102
+}
+Reformat {
+ inputs 0
+ type "to box"
+ box_width 48
+ box_height 48
+ box_fixed true
+ name Reformat18
+ label "\[value format]"
+ xpos 209
+ ypos 347
+}
+Roto {
+ inputs 0
+ output alpha
+ cliptype none
+ curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 2097152}
+    {t x43000000 x43000000}
+    {a pt1x 0 pt1y 0 pt2x 0 pt2y 0 pt3x 0 pt3y 0 pt4x 0 pt4y 0 ptex00 0 ptex01 0 ptex02 0 ptex03 0 ptex10 0 ptex11 0 ptex12 0 ptex13 0 ptex20 0 ptex21 0 ptex22 0 ptex23 0 ptex30 0 ptex31 0 ptex32 0 ptex33 0 ptof1x 0 ptof1y 0 ptof2x 0 ptof2y 0 ptof3x 0 ptof3y 0 ptof4x 0 ptof4y 0 pterr 0 ptrefset 0 ptmot x40800000 ptref 0}
+    {curvegroup Rectangle1 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {0 xc2760000}
+        {x42ebbf7c x434c0000}
+        {x40c2b020 0}
+        {xc0c2b020 0}
+        {x43082041 x434c0000}
+        {0 xc2760000}
+        {0 x42760000}
+        {x43082041 x419c0000}
+        {xc0c2b020 0}
+        {x40c2b020 0}
+        {x42ebbf7c x419c0000}
+        {0 x42760000}}}     idem}
+     {tx 1 x42fe0000 x42df8000}
+     {a osw x41200000 osf 0 str 1 spx x43000000 spy x43000000 sb 1 tt x41000000}}}}}}
+ toolbox {selectAll {
+  { selectAll str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 tt 4 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 tt 8 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+ toolbar_brush_hardness 0.200000003
+ toolbar_source_transform_scale {1 1}
+ toolbar_source_transform_center {128 128}
+ colorOverlay {0 0 0 0}
+ lifetime_type "all frames"
+ motionblur_shutter_offset_type centred
+ source_black_outside true
+ name Roto26
+ xpos 3339
+ ypos 834
+}
+Transform {
+ translate {-5.5 10.5}
+ rotate 49.61894226
+ center {128 128}
+ name Transform22
+ label "\[value translate]"
+ xpos 3339
+ ypos 889
+}
+Roto {
+ inputs 0
+ output alpha
+ cliptype none
+ curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 2097664}
+    {t x42640000 x42c00000}
+    {a pt1x 0 pt1y 0 pt2x 0 pt2y 0 pt3x 0 pt3y 0 pt4x 0 pt4y 0 ptex00 0 ptex01 0 ptex02 0 ptex03 0 ptex10 0 ptex11 0 ptex12 0 ptex13 0 ptex20 0 ptex21 0 ptex22 0 ptex23 0 ptex30 0 ptex31 0 ptex32 0 ptex33 0 ptof1x 0 ptof1y 0 ptof2x 0 ptof2y 0 ptof3x 0 ptof3y 0 ptof4x 0 ptof4y 0 pterr 0 ptrefset 0 ptmot x40800000 ptref 0}
+    {curvegroup BezierCusped1 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {0 0}
+        {x42c9874e x42585b26}
+        {0 0}
+        {0 0}
+        {x431bcbee x425ddf62}
+        {0 0}
+        {0 0}
+        {x42ffe0b6 x4152e578}
+        {0 0}}}     idem}
+     {tx 1 x425970a4 x41d1b4e8}
+     {a osw x41200000 osf 0 str 1 spx x42640000 spy x42c00000 sb 1 tt x40a00000}}
+    {curvegroup Rectangle2 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {0 x412bef40}
+        {x42ca9064 x4350b593}
+        {x41d32f20 0}
+        {xc1d32f28 0}
+        {x431c2b22 x4350b593}
+        {0 x412bef40}
+        {x40da78c0 xbd682000}
+        {x431655aa x43704ef9}
+        {xc1776440 x3e046800}
+        {x417ad2e0 x3db51000}
+        {x42d71890 x43706fa9}
+        {xc0ebd8c0 xbd2ca000}}}
+      {cc
+       {f 8192}
+       {px 1
+        {0 x412bef40}
+        {0 0}
+        {x41d32f20 0}
+        {xc1d32f28 0}
+        {0 0}
+        {0 x412bef40}
+        {x40da78c0 xbd682000}
+        {0 0}
+        {xc1776440 x3e046800}
+        {x417ad2e0 x3db51000}
+        {0 0}
+        {xc0ebd8c0 xbd2ca000}}}}
+     {tx 1 x4258e666 x429c7333}
+     {a osw x41200000 osf 0 str 1 spx x42640000 spy x42c00000 sb 1 tt x41000000}}
+    {curvegroup Rectangle1 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {0 xc2313898}
+        {x42c9c30c x43465290}
+        {x41d392b0 0}
+        {xc1d392b0 0}
+        {x431be9cc x43465290}
+        {0 xc2313898}
+        {0 x4231389c}
+        {x431be9cc x4282d036}
+        {xc1d392b0 0}
+        {x41d392b0 0}
+        {x42c9c30c x4282d038}
+        {0 x4231389c}}}     idem}
+     {tx 1 x42593333 x42534ccd}
+     {a osw x41200000 osf 0 str 1 spx x42640000 spy x42c00000 sb 1 tt x41000000}}}}}}
+ toolbox {selectAll {
+  { selectAll str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 tt 4 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 tt 5 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 tt 6 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 tt 8 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+ toolbar_brush_hardness 0.200000003
+ toolbar_source_transform_scale {1 1}
+ toolbar_source_transform_center {57 96}
+ colorOverlay {0 0 0 0}
+ lifetime_type "all frames"
+ motionblur_shutter_offset_type centred
+ source_black_outside true
+ name Roto27
+ xpos 3469
+ ypos 779
+}
+Transform {
+ translate {3 -11}
+ rotate -36.0760231
+ center {129.5 135}
+ name Transform47
+ label "\[value translate]"
+ xpos 3469
+ ypos 838
+}
+Merge2 {
+ inputs 2
+ name Merge19
+ label "\[value mix]"
+ xpos 3469
+ ypos 899
+ disable true
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color {0.08407999575 0.07400000095 0.200000003 1}
+ name Constant20
+ xpos 3988
+ ypos 558
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color {0.3563000262 0.2899999917 0.6800000072 1}
+ name Constant21
+ xpos 3866
+ ypos 558
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color {0 0 0 1}
+ name Constant22
+ xpos 3744
+ ypos 558
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color {0.02600000054 0.02600000054 0.02600000054 1}
+ name Constant23
+ xpos 3632
+ ypos 558
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color {0.5 0.5 0.5 1}
+ name Constant24
+ xpos 3510
+ ypos 555
+}
+Constant {
+ inputs 0
+ channels {rgba.red rgba.green rgba.blue -rgba.alpha}
+ color 1
+ name Constant25
+ xpos 3376
+ ypos 558
+}
+Switch {
+ inputs 6
+ which {{which1}}
+ name Switch2
+ label "\[value which]"
+ xpos 3688
+ ypos 732
+ addUserKnob {20 User}
+ addUserKnob {4 which1 M {white gray darkgray black blue darkblue ""}}
+ which1 gray
+}
+Copy {
+ inputs 2
+ from0 rgba.alpha
+ to0 rgba.alpha
+ name Copy17
+ xpos 3688
+ ypos 952
+}
+Premult {
+ name Premult4
+ xpos 3798
+ ypos 958
+ disable true
+}
+Reformat {
+ type "to box"
+ box_width {{parent.Reformat18.box_width}}
+ box_height {{parent.Reformat18.box_height}}
+ box_fixed true
+ name Reformat14
+ label "\[value format]"
+ xpos 4071
+ ypos 952
+}
+Write {
+ channels rgba
+ file "\[python \{os.path.dirname(nuke.Root()\['name'].value())\}]/edit\[value switch].png"
+ file_type png
+ datatype "16 bit"
+ checkHashOnRead false
+ version 39
+ in_colorspace linear
+ out_colorspace linear
+ name Write17
+ xpos 4260
+ ypos 952
+ addUserKnob {20 User}
+ addUserKnob {1 switch}
+ switch "_\[value Switch2.which1]"
+}
+Roto {
+ inputs 0
+ output alpha
+ cliptype none
+ curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 2097152}
+    {t x43000000 x43000000}
+    {a pt1x 0 pt1y 0 pt2x 0 pt2y 0 pt3x 0 pt3y 0 pt4x 0 pt4y 0 ptex00 0 ptex01 0 ptex02 0 ptex03 0 ptex10 0 ptex11 0 ptex12 0 ptex13 0 ptex20 0 ptex21 0 ptex22 0 ptex23 0 ptex30 0 ptex31 0 ptex32 0 ptex33 0 ptof1x 0 ptof1y 0 ptof2x 0 ptof2y 0 ptof3x 0 ptof3y 0 ptof4x 0 ptof4y 0 pterr 0 ptrefset 0 ptmot x40800000 ptref 0}
+    {curvegroup Ellipse2 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {xc0d8f000 0}
+        {x43038c87 x420fd0a1}
+        {x40d8f000 0}
+        {0 xc0d8f000}
+        {x430fd2ed x4240ea39}
+        {0 x40d8f000}
+        {x40d8f000 0}
+        {x43038c87 x427203d5}
+        {xc0d8f000 0}
+        {0 x40d8f000}
+        {x42ee8c40 x4240ea39}
+        {0 xc0d8f000}}}
+      {cc
+       {f 8192}
+       {px 1
+        {xc0d8f000 0}
+        {0 0}
+        {x40d8f000 0}
+        {0 xc0d8f000}
+        {0 0}
+        {0 x40d8f000}
+        {x40d8f000 0}
+        {0 0}
+        {xc0d8f000 0}
+        {0 x40d8f000}
+        {0 0}
+        {0 xc0d8f000}}}}
+     {tx 1 x43038666 x434b4666}
+     {a osw x41200000 osf 0 str 1 spx x43000000 spy x43000000 sb 1 tt x40e00000}}
+    {curvegroup Ellipse1 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {xc0d8f000 0}
+        {x4303b4f2 x43452e8a}
+        {x40d8f000 0}
+        {0 xc0d8f000}
+        {x430ffb58 x435174f0}
+        {0 x40d8f000}
+        {x40d8f000 0}
+        {x4303b4f2 x435dbb57}
+        {xc0d8f000 0}
+        {0 x40d8f000}
+        {x42eedd18 x435174f0}
+        {0 xc0d8f000}}}
+      {cc
+       {f 8192}
+       {px 1
+        {xc0d8f000 0}
+        {0 0}
+        {x40d8f000 0}
+        {0 xc0d8f000}
+        {0 0}
+        {0 x40d8f000}
+        {x40d8f000 0}
+        {0 0}
+        {xc0d8f000 0}
+        {0 x40d8f000}
+        {0 0}
+        {0 xc0d8f000}}}}
+     {tx 1 x43038666 x434b4666}
+     {a osw x41200000 osf 0 str 1 spx x43000000 spy x43000000 sb 1 tt x40e00000}}
+    {curvegroup Rectangle1 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {0 xc2575554}
+        {x42ee924d x4351b6db}
+        {x4102aaa8 0}
+        {xc102aaa8 0}
+        {x430fc926 x4351b6db}
+        {0 xc2575554}
+        {0 x42575554}
+        {x430fc926 x4240db6c}
+        {xc102aaa8 0}
+        {x4102aaa8 0}
+        {x42ee924d x4240db6c}
+        {0 x42575554}}}
+      {cc
+       {f 8192}
+       {px 1
+        {0 xc2575554}
+        {0 0}
+        {x4102aaa8 0}
+        {xc102aaa8 0}
+        {0 0}
+        {0 xc2575554}
+        {0 x42575554}
+        {0 0}
+        {xc102aaa8 0}
+        {x4102aaa8 0}
+        {0 0}
+        {0 x42575554}}}}
+     {tx 1 x42e58000 x42f28000}
+     {a osw x41200000 osf 0 str 1 spx x43000000 spy x43000000 sb 1 tt x41000000}}}}}}
+ toolbox {selectAll {
+  { selectAll str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 tt 4 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 tt 7 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 tt 8 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+ toolbar_brush_hardness 0.200000003
+ toolbar_source_transform_scale {1 1}
+ toolbar_source_transform_center {128 128}
+ colorOverlay {0 0 0 0}
+ lifetime_type "all frames"
+ motionblur_shutter_offset_type centred
+ source_black_outside true
+ name Roto2
+ xpos -637
+ ypos 282
+}
+set N3c8d7c00 [stack 0]
+Transform {
+ rotate 90
+ center {131.5 128.5}
+ name Transform2
+ label "\[value translate]"
+ xpos -520
+ ypos 326
+}
+push $N3c8d7c00
+Merge2 {
+ inputs 2
+ name Merge4
+ label "\[value mix]"
+ xpos -637
+ ypos 375
+}
+Transform {
+ rotate 45
+ scale 0.69
+ center {131.5 128.5}
+ name Transform3
+ label "\[value translate]"
+ xpos -637
+ ypos 434
+}
+Transform {
+ translate {-2.505000114 -0.5}
+ rotate 1
+ center {131.5 128.5}
+ name Transform5
+ label "\[value translate]"
+ xpos -637
+ ypos 496
+}
+Roto {
+ inputs 0
+ output alpha
+ cliptype none
+ curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 2097152}
+    {t x43000000 x43000000}
+    {a pt1x 0 pt1y 0 pt2x 0 pt2y 0 pt3x 0 pt3y 0 pt4x 0 pt4y 0 ptex00 0 ptex01 0 ptex02 0 ptex03 0 ptex10 0 ptex11 0 ptex12 0 ptex13 0 ptex20 0 ptex21 0 ptex22 0 ptex23 0 ptex30 0 ptex31 0 ptex32 0 ptex33 0 ptof1x 0 ptof1y 0 ptof2x 0 ptof2y 0 ptof3x 0 ptof3y 0 ptof4x 0 ptof4y 0 pterr 0 ptrefset 0 ptmot x40800000 ptref 0}
+    {curvegroup Ellipse1 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {xc26f23a8 0}
+        {x4300c000 x419c0005}
+        {x426f23a8 0}
+        {0 xc26f23a8}
+        {x436d0000 x42ff8001}
+        {0 x426f23a8}
+        {x426f23a8 0}
+        {x4300c000 x436c0001}
+        {xc26f23a8 0}
+        {0 x426f23a8}
+        {x41a3ffff x42ff8001}
+        {0 xc26f23a8}}}
+      {cc
+       {f 8192}
+       {px 1
+        {xc26f23a8 0}
+        {0 0}
+        {x426f23a8 0}
+        {0 xc26f23a8}
+        {0 0}
+        {0 x426f23a8}
+        {x426f23a8 0}
+        {0 0}
+        {xc26f23a8 0}
+        {0 x426f23a8}
+        {0 0}
+        {0 xc26f23a8}}}}
+     {tx 1 x430c4000 x42c78000}
+     {a osw x41200000 osf 0 str 1 spx x43000000 spy x43000000 sb 1 tt x40e00000}}}}}}
+ toolbox {selectAll {
+  { selectAll str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 tt 4 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 tt 7 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+ toolbar_brush_hardness 0.200000003
+ toolbar_source_transform_scale {1 1}
+ toolbar_source_transform_center {128 128}
+ colorOverlay {0 0 0 0}
+ lifetime_type "all frames"
+ motionblur_shutter_offset_type centred
+ source_black_outside true
+ name Roto1
+ xpos -359
+ ypos 284
+}
+set N3b79c000 [stack 0]
+Transform {
+ scale 0.85
+ center {129 128}
+ name Transform1
+ label "\[value translate]"
+ xpos -244
+ ypos 348
+}
+push $N3b79c000
+Merge2 {
+ inputs 2
+ operation stencil
+ name Merge1
+ label "\[value mix]"
+ xpos -353
+ ypos 413
+}
+Merge2 {
+ inputs 2
+ name Merge3
+ label "\[value mix]"
+ xpos -353
+ ypos 517
+}
+Transform {
+ scale 0.97
+ center {129 128}
+ name Transform4
+ label "\[value translate]"
+ xpos -353
+ ypos 569
+}
+set N3c8d6c00 [stack 0]
+Constant {
+ inputs 0
+ color {0.01746215858 0.01735199988 0.01799999923 1}
+ name Constant8
+ xpos -13
+ ypos 523
+}
+Copy {
+ inputs 2
+ from0 rgba.alpha
+ to0 rgba.alpha
+ name Copy1
+ xpos -13
+ ypos 625
+}
+set N2d6cf800 [stack 0]
+Premult {
+ name Premult13
+ xpos -13
+ ypos 694
+}
+push 0
+Merge2 {
+ inputs 2
+ name Merge2
+ label "\[value mix]"
+ xpos -13
+ ypos 739
+}
+push $N2d6cf800
+Reformat {
+ type "to box"
+ box_width {{parent.Reformat18.box_width}}
+ box_height {{parent.Reformat18.box_height}}
+ box_fixed true
+ name Reformat1
+ label "\[value format]"
+ xpos 207
+ ypos 625
+}
+Write {
+ channels rgba
+ file "\[python \{os.path.dirname(nuke.Root()\['name'].value())\}]/Error01.png"
+ file_type png
+ datatype "16 bit"
+ checkHashOnRead false
+ version 40
+ name Write13
+ xpos 378
+ ypos 625
+ addUserKnob {20 User}
+ addUserKnob {1 switch}
+ switch "_\[value Switch2.which1]"
+}
+push $N3c8d6c00
+Transform {
+ scale 0.635
+ center {129 128}
+ name Transform6
+ label "\[value translate]"
+ xpos -353
+ ypos 638
+}
+Shuffle {
+ red alpha
+ green alpha
+ blue alpha
+ name Shuffle1
+ label "\[value in]"
+ xpos -353
+ ypos 717
+}
+Constant {
+ inputs 0
+ color {0.02910359763 0.02892000042 0.03799999878 1}
+ name Constant1
+ xpos -188
+ ypos 651
+}
+Merge2 {
+ inputs 2
+ name Merge5
+ label "\[value mix]"
+ xpos -188
+ ypos 738
+}
+set N5e763400 [stack 0]
+Reformat {
+ format "1280 720 0 0 1280 720 1 HD_720"
+ resize height
+ name Reformat2
+ label "\[value format]"
+ xpos 214
+ ypos 785
+}
+Reformat {
+ type scale
+ scale 0.375
+ name Reformat3
+ label "\[value format]"
+ xpos 214
+ ypos 858
+}
+Crop {
+ box {0 0 480 270}
+ crop false
+ name Crop1
+ xpos 214
+ ypos 907
+}
+set N5ae8a800 [stack 0]
+push 0
+push $N5e763400
+Viewer {
+ inputs 3
+ frame_range 1-1
+ input_number 2
+ name Viewer1
+ xpos -249
+ ypos 1097
+}
+push $N5ae8a800
+Write {
+ channels rgba
+ file "\[python \{os.path.dirname(nuke.Root()\['name'].value())\}]/Error02.png"
+ file_type png
+ datatype "16 bit"
+ checkHashOnRead false
+ version 42
+ name Write1
+ xpos 381
+ ypos 901
+ addUserKnob {20 User}
+ addUserKnob {1 switch}
+ switch "_\[value Switch2.which1]"
+}

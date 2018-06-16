@@ -49,3 +49,4 @@ if __name__ == '__main__':
     print(encrypt_text)
     print(do_decrypt(encrypt_text))
     print(do_hash('john_password'))
+    print(do_hash(''))

@@ -32,12 +32,19 @@
 # Datefield group问题 > 使用pre_group_func
 # config prefetch循环问题 > 使用PrefetchConfig
 # res文件移出utils
-缩略图全部为文件id
+# 缩略图全部为文件id
 # Test文件移出sins文件夹
 尽量使用单行edit tooltip显示全部
 
 # 提交github
-
+优化filetypes
+# 测试文件类型:
+# image(png, jpg),
+# text(txt, py, rv, edl),
+# audio(mp3, aif),
+# video(mov, mp4),
+# application(pdf, word),
+# 需要一个错误时显示的图片
 
 # task 添加project外键
 # 常用field列出来
@@ -52,6 +59,10 @@
 # 打开新连接
 # 单外键celledit
 # set_core_property重复
+# api_users表
+# 删除git package文件夹
+# asset sequence link? > 暂时不要
+# note, file连接为many
 field属性全部从config文件获取
 新的权限方法?
 advanced group
@@ -64,6 +75,7 @@ status icon referred_table 编辑
 
 多外键celledit
 数据库搜索
+可选择列的搜索框
 project persons
 group persons
 
@@ -91,6 +103,7 @@ project detail
 上传用户图片生成小尺寸.thumbnail
 # previewlabel加载图片时生成.thumbnail
 # PreviewLabel更名
+文件的权限问题
 
 rv集成
 安装窗口

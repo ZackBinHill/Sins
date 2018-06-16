@@ -150,7 +150,7 @@ class DepartmentConfig(ModelConfig):
 
         self.db_model = Department
         self.in_fields = [
-            InField(name='name', label='Name', edit_permission=['Root']),
+            InField(name='code', label='Code', edit_permission=['Root']),
             InField(name='full_name', label='Full Name', edit_permission=['Root'],
                     group_enable=False, sort_enable=False),
             InField(name='description', label='Description', inner_widget=CellTextEdit, edit_permission=['Root'],
@@ -166,7 +166,7 @@ class DepartmentConfig(ModelConfig):
             PrefetchConfig(db_model=Person, ),
         ]
 
-        self.default_fields = ['name',
+        self.default_fields = ['code',
                                'full_name',
                                'description',
                                'color',
@@ -182,14 +182,14 @@ class PermissionGroupConfig(ModelConfig):
 
         self.db_model = PermissionGroup
         self.in_fields = [
-            InField(name='name', label='Name'),
+            InField(name='code', label='Code'),
             InField(name='description', label='Description', inner_widget=CellTextEdit,
                     group_enable=False, sort_enable=False),
         ]
         # self.out_fields = [
         #     OutField(name='department', field_label='Department', config=DepartmentConfig()),
         # ]
-        self.default_fields = ['name',
+        self.default_fields = ['code',
                                'description',
                                ]
 
@@ -220,10 +220,10 @@ class PersonConfig(ModelConfig):
 
             InField(name='department', label='Department', model_attr='department_name',
                     inner_widget=DepartmentChooseEdit, edit_permission=['Root'],
-                    group_attr=[Department, 'name']),
+                    group_attr=[Department, 'code']),
             InField(name='permission_group', label='Permission Group', model_attr='permission_group_name',
                     inner_widget=PermissionGroupChooseEdit, edit_permission=['Root'],
-                    group_attr=[PermissionGroup, 'name']),
+                    group_attr=[PermissionGroup, 'code']),
 
             InField(name='projects', label='Projects', model_attr='project_objects',
                     inner_widget=CellMultiObjectEdit, widget_attr_map={'linkable': False, 'link_model': 'Project'},
@@ -289,7 +289,7 @@ class ProjectConfig(ModelConfig):
 
         self.db_model = Project
         self.in_fields = [
-            InField(name='name', label='Name'),
+            InField(name='code', label='Code'),
             InField(name='full_name', label='Full Name', group_enable=False, edit_permission=['Root']),
             InField(name='description', label='Description', inner_widget=CellTextEdit,
                     group_enable=False, edit_permission=['Root']),
@@ -304,7 +304,7 @@ class ProjectConfig(ModelConfig):
         ]
         self.default_fields = ['thumbnail',
                                'status',
-                               'name',
+                               'code',
                                'full_name',
                                'description',
                                'start_time',
@@ -320,13 +320,13 @@ class GroupConfig(ModelConfig):
 
         self.db_model = Group
         self.in_fields = [
-            InField(name='name', label='Name', model_attr='name', edit_permission=['Root']),
-            InField(name='full_name', label='Full Name', model_attr='full_name', group_enable=False,
+            InField(name='code', label='Code', edit_permission=['Root']),
+            InField(name='full_name', label='Full Name', group_enable=False,
                     edit_permission=['Root']),
-            InField(name='description', label='Description', model_attr='description', inner_widget=CellTextEdit,
+            InField(name='description', label='Description', inner_widget=CellTextEdit,
                     edit_permission=['Root'], group_enable=False),
         ]
-        self.default_fields = ['name',
+        self.default_fields = ['code',
                                'full_name',
                                'description',
                                ]
@@ -662,8 +662,8 @@ def get_prefetch_models(config, depth=1):
 
 
 
-if __name__ == '__main__':
-    query = Person.select().order_by(Person.department).paginate(1, 50)
-    for q in query:
-        print q.department_name
+# if __name__ == '__main__':
+#     query = Person.select().order_by(Person.department).paginate(1, 50)
+#     for q in query:
+#         print q.department_name
 

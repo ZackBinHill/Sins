@@ -3,8 +3,9 @@
 # 4/17/2018
 
 import sys
+import traceback
 from sins.module.sqt import *
-from sins.module.db import mysql
+from sins.module.db import mysql, psycopg2
 from sins.ui.widgets.labelbutton import QLabelButton
 
 
@@ -43,9 +44,9 @@ class InstallDialog(QDialog):
 
         self.layout1 = QFormLayout()
         self.hostEdit = QLineEdit("localhost")
-        self.portEdit = QLineEdit("3306")
-        self.userEdit = QLineEdit("root")
-        self.pwdEdit = QLineEdit()
+        self.portEdit = QLineEdit("5432")
+        self.userEdit = QLineEdit("postgres")
+        self.pwdEdit = QLineEdit('123456')
         self.pwdEdit.setEchoMode(QLineEdit.Password)
         self.layout1.addRow("Database Host: ", self.hostEdit)
         self.layout1.addRow("Database Port: ", self.portEdit)
@@ -85,14 +86,15 @@ class InstallDialog(QDialog):
             "host": host,
             "port": port,
             "user": user,
-            "passwd": password,
+            "password": password,
         }
         try:
-            db = mysql.connect(**connect_dict)
+            db = psycopg2.connect(**connect_dict)
             print "connect to database successful"
             db.close()
         except:
             print "connect to database failed, check host and password"
+            traceback.print_exc()
 
     def cancel_clicked(self):
         self.close()

@@ -1,6 +1,13 @@
 import os
 import time
 from sins.utils.path.sequence import is_sequence, get_sequences
+from sins.module import filetype
+use_magic = False
+try:
+    import magic
+    use_magic = True
+except ImportError:
+    pass
 
 def get_dirs(folder):
     dirs = []
@@ -44,10 +51,25 @@ def get_files_mtime(fileList):
     return timeStr
 
 
+def get_file_mime(f):
+    if use_magic:
+        return magic.from_file(f, mime=True)
+    else:
+        result = filetype.guess(f)
+        if result is not None:
+            return result.mime
+        else:
+            return ''
+
+
 def get_file_size(f, get="str"):
     size = 0.0
     try:
+        if get == "byte":
+            return os.path.getsize(f)
         size = float(os.path.getsize(f) / 1024.0 / 1024.0)
+        if get == "float":
+            return size
     except:
         pass
     if size < 1.0:
@@ -57,8 +79,6 @@ def get_file_size(f, get="str"):
     # print sizeStr
     if get == "str":
         return sizeStr
-    if get == "float":
-        return size
 
 
 def get_files_size(files, get="str"):

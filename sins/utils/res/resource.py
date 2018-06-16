@@ -14,9 +14,7 @@ except ImportError:
     pass
 
 
-This_Folder = os.path.dirname(__file__)
 Res_Folder = '/'.join(__file__.replace('\\', '/').split('/')[:-3]) + '/resource'
-# print Res_Folder
 
 icon = declare_constants(
     Shot="icon/Shots.png",
@@ -29,6 +27,12 @@ icon = declare_constants(
     Asset_B="icon/Assets_bright.png",
     File="icon/Files.png",
     Tag="icon/Tags.png",
+)
+
+
+error_pic = declare_constants(
+    Error01=os.path.join(Res_Folder, 'other', 'Error01.png'),
+    Error02=os.path.join(Res_Folder, 'other', 'Error02.png'),
 )
 
 
@@ -74,8 +78,10 @@ def get_pixmap(*args, **kwargs):
     :return: QPixmap
     """
     path = args[0] if os.path.isfile(args[0]) else get_pic(*args)
-    scale = kwargs["scale"] if 'scale' in kwargs else None
-    color = kwargs["color"] if 'color' in kwargs else None
+    scale = kwargs.get('scale')
+    aspect = kwargs.get('aspect', 'keep')
+    color = kwargs.get('color')
+    error = kwargs.get('error', 'Error01')
 
     if isinstance(scale, QSize):
         pass
@@ -127,8 +133,17 @@ def get_pixmap(*args, **kwargs):
 
     else:
         img = QImage(path)
+        if img.width() == 0:
+            img = QImage(getattr(error_pic, error))
         if scale:
-            img = img.scaled(scale, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            if aspect == 'keep':
+                img = img.scaled(scale, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            elif aspect == 'expand':
+                img = img.scaled(scale, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+            elif aspect == 'width':
+                img = img.scaledToWidth(scale.width(), Qt.SmoothTransformation)
+            elif aspect == 'height':
+                img = img.scaledToHeight(scale.height(), Qt.SmoothTransformation)
         if color:
             img = img.convertToFormat(QImage.Format_Indexed8)
             if img.depth() in [1, 8]:
@@ -179,5 +194,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     # print get_pic("player", "aaa.png")
     # print get_pixmap("player", "aaa.png")
-    print get_style("main_gui")
+    print get_pixmap('F:/Temp/pycharm/Sins_data/sins/File/0000/0000/0015/DRM.jpg', scale=[100, 70])
+    # print get_style("main_gui")
     app.exec_()

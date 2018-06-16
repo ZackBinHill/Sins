@@ -50,8 +50,8 @@ print "# ----------------                          ---------------- #"
 print "# ----------------      start install       ---------------- #"
 
 import sys
-from module.sqt import *
-from ui.install.install_gui import InstallDialog
+from sins.module.sqt import *
+from sins.ui.install.install_gui import InstallDialog
 
 app = QApplication(sys.argv)
 panel = InstallDialog()

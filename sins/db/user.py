@@ -2,15 +2,16 @@
 # __author__ = 'XingHuan'
 # 4/17/2018
 
-# from sins.module.db import mysql
-from sins.db.origin_db import database, DATABASE_NAME, MySQLDatabase, PostgresqlDatabase
 import traceback
+from sins.db.origin_db import DATABASE_NAME, MySQLDatabase, PostgresqlDatabase
+from sins.utils.log import get_logger
 
+logger = get_logger(__name__)
 
-cursor = database.cursor()
 
 # add user
-def add_user(user='user1', pwd='123456'):
+def add_database_user(database, user='user1', pwd='123456'):
+    cursor = database.cursor()
     if isinstance(database, MySQLDatabase):
         try:
             cursor.execute('CREATE USER "{user}"@"%" IDENTIFIED BY "{pwd}"'.format(user=user, pwd=pwd))
@@ -19,7 +20,7 @@ def add_user(user='user1', pwd='123456'):
             )
             cursor.execute('flush privileges')
         except:
-            print 'Can\'t create user {user}, user may exist.'.format(user=user)
+            logger.warning('Can\'t create user {user}, user may exist.'.format(user=user))
             # traceback.print_exc()
     elif isinstance(database, PostgresqlDatabase):
         try:
@@ -34,23 +35,19 @@ def add_user(user='user1', pwd='123456'):
             # -------------view permission------------- #
             # select * from pg_class where relname='departments';
         except:
-            print 'Can\'t create user {user}, user may exist.'.format(user=user)
+            logger.warning('Can\'t create user {user}, user may exist.'.format(user=user))
             database.commit()
             # traceback.print_exc()
 
-add_user()
-
-# cursor.execute('select user')
-# data = cursor.fetchone()
-# print data
 
 # delete user
-def delete_user(user='user1'):
+def drop_database_user(database, user='user1'):
+    cursor = database.cursor()
     if isinstance(database, MySQLDatabase):
         try:
             cursor.execute('DROP USER "{user}"@"%"'.format(user=user))
         except:
-            print 'Can\'t drop user {user}.'.format(user=user)
+            logger.warning('Can\'t drop user {user}.'.format(user=user))
     elif isinstance(database, PostgresqlDatabase):
         try:
             cursor.execute('REVOKE SELECT,insert,update ON ALL TABLES IN SCHEMA PUBLIC FROM {user}'.format(
@@ -58,10 +55,15 @@ def delete_user(user='user1'):
             cursor.execute('drop role {user}'.format(user=user))
             database.commit()
         except:
-            print 'Can\'t drop user {user}.'.format(user=user)
+            logger.warning('Can\'t drop user {user}.'.format(user=user))
             database.commit()
 
-delete_user()
 
-database.close()
+
+if __name__ == '__main__':
+    from sins.db.origin_db import database
+
+    add_database_user(database)
+
+    drop_database_user(database)
 

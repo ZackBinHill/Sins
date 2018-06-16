@@ -142,7 +142,7 @@ class FilterTree(QTreeWidget):
     def load_shows(self):
         for showid in self.showList:
             project = Project.get(id=showid)
-            showItem = FilterTreeItem(project.name, type="Project", id=showid)
+            showItem = FilterTreeItem(project.code, type="Project", id=showid)
             self.addTopLevelItem(showItem)
             if len(self.showList) <= 1:
                 showItem.setExpanded(True)
