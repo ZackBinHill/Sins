@@ -59,16 +59,16 @@ class CacheThread(QThread):
                  step=1,
                  resize=1,
                  fixwidth=None,
-                 readfile=False,
-                 tofile=False):
+                 readcache=False,
+                 tocache=False):
         super(CacheThread, self).__init__()
 
         self.capFile = capFile
         self.step = step
         self.resizeRatio = resize
         self.fixWidth = fixwidth
-        self.readfile = readfile
-        self.tofile = tofile
+        self.readcache = readcache
+        self.tocache = tocache
 
         self.index = 0
 
@@ -94,7 +94,7 @@ class CacheThread(QThread):
 
         self.cacheFile = os.path.abspath(self.capFile) + ".thumbnail"
 
-        if os.path.exists(self.cacheFile) and self.readfile:
+        if os.path.exists(self.cacheFile) and self.readcache:
             try:
                 f = open(self.cacheFile, "rb")
                 data = f.read()
@@ -116,7 +116,7 @@ class CacheThread(QThread):
         self.cap.release()
 
     def cache_frames(self):
-        if self.tofile:
+        if self.tocache:
             f = open(self.cacheFile, 'wb')
         for i in range(self.frameIn, self.frameOut + 1):
             ret, frame = self.cap.read()
@@ -139,20 +139,27 @@ class CacheThread(QThread):
                     if i % 10 == 0:
                         self.cacheFrame.emit()
 
-                    if self.tofile:
+                    if self.tocache:
                         f.write("##########%s##########" % i)
                         f.write(imgdata)
-        if self.tofile:
+        if self.tocache:
             f.close()
 
 
 class ReadThread(QThread):
     readDone = Signal(object)
-    def __init__(self, readFile, cap=None, frame=1, fixwidth=None):
+    def __init__(self,
+                 readFile,
+                 cap=None,
+                 frame=1,
+                 fixwidth=None,
+                 readcache=True
+                 ):
         super(ReadThread, self).__init__()
 
         self.readFile = readFile
         self.fixWidth = fixwidth
+        self.readcache = readcache
         if os.path.splitext(readFile)[1] in VIDEO_EXT:
             if cap is None:
                 self.cap = cv2.VideoCapture(readFile)
@@ -164,7 +171,7 @@ class ReadThread(QThread):
 
     def run(self):
         if os.path.splitext(self.readFile)[1] in VIDEO_EXT:
-            if os.path.exists(self.cacheFile):
+            if os.path.exists(self.cacheFile) and self.readcache:
                 try:
                     f = open(self.cacheFile, "rb")
                     data = f.read()
@@ -182,7 +189,7 @@ class ReadThread(QThread):
                 self.read_from_video_file()
 
         elif os.path.splitext(self.readFile)[1] in IMG_EXT:
-            if os.path.exists(self.cacheFile):
+            if os.path.exists(self.cacheFile) and self.readcache:
                 try:
                     f = open(self.cacheFile, "rb")
                     data = f.read()
@@ -225,6 +232,6 @@ if __name__ == "__main__":
     from sins.test.test_res import TestMov
     app = QApplication(sys.argv)
     capFile = TestMov("test.mp4")
-    cacheThread = CacheThread(capFile, cap=None, frameIn=1, frameOut=1180, step=1, resize=1, fixwidth=None, readfile=False, tofile=True)
+    cacheThread = CacheThread(capFile, cap=None, frameIn=1, frameOut=1180, step=1, resize=1, fixwidth=None, readcache=False, tocache=True)
     cacheThread.start()
     app.exec_()

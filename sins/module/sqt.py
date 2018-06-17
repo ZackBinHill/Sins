@@ -38,8 +38,10 @@ def loadUI(uifile, parent):
 
 
 def to_unicode(qstring):
-    if isinstance(qstring, (str, unicode)):
+    if isinstance(qstring, unicode):
         return qstring
+    elif isinstance(qstring, str):
+        return unicode(qstring, 'utf-8')
     else:
         return unicode(str(qstring.toAscii()), 'utf-8')
 

@@ -48,7 +48,7 @@
 
 # task 添加project外键
 # 常用field列出来
-圆形头像
+# 圆形头像
 # 路径类数据使用TextField
 # text自动高度无效
 # 数字使用lineedit错误
@@ -82,7 +82,7 @@ group persons
 # status添加description
 # sequence添加status
 
-thumbnail应该是可编辑
+# thumbnail应该是可编辑
 # Department颜色cellwidget
 # colorWheel bug
 # colorwheel默认值255,255,255
@@ -92,6 +92,20 @@ status图标
 # 统一图标尺寸48px
 测试数据尽量完整
 保存用户配置方法QSettings json
+global setting:
+database host
+database port
+数据文件路径
+rv路径
+user setting:
+登陆名
+密码
+窗口位置大小
+表的自定义过滤方法
+media历史
+最近浏览历史
+最近项目
+
 # media为flowlayout
 # media MediaWidget美化
 # media scrollbar样式
@@ -111,9 +125,11 @@ rv集成
 # 加载gif01
 # 加载gif02
 # 数据库历史记录
+检查所有文件, 删除无用
 mysql trigger
 主窗口去除边框?
 统计
 code style
 文件, 函数说明
+api
 python3支持

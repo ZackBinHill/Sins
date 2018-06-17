@@ -8,14 +8,19 @@ from sins.module.db.peewee import *
 from sins.utils.env.consts import login_env
 from sins.utils.encrypt import do_decrypt
 from sins.utils.log import get_logger
+from sins.utils.settings import Global_Setting, global_settings, convert_setting
+from sins.db.const import DATABASE_NAME, database_type
 
 logger = get_logger(__file__)
 
-DATABASE_NAME = 'sins_test05'
+host_setting = Global_Setting.value(global_settings.database_host)
+host = convert_setting(host_setting)
 
-host = 'localhost'
-# port = 3306
-port = 5432
+port_setting = Global_Setting.value(global_settings.database_port)
+port = convert_setting(port_setting, to_type='int')
+
+dbtype_setting = Global_Setting.value(global_settings.database_type)
+dbtype = convert_setting(dbtype_setting)
 
 user = os.environ.get(login_env.user)
 pwd = os.environ.get(login_env.pwd)
@@ -40,6 +45,12 @@ connect_dict = {
     'password': pwd
 }
 
-# database = MySQLDatabase('shots_test04', **connect_dict)
-database = PostgresqlDatabase(DATABASE_NAME, **connect_dict)
 
+if dbtype == database_type.postgresql:
+    database = PostgresqlDatabase(DATABASE_NAME, **connect_dict)
+elif dbtype == database_type.mysql:
+    database = MySQLDatabase(DATABASE_NAME, **connect_dict)
+
+if __name__ == '__main__':
+    database.connect()
+    database.close()

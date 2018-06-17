@@ -164,8 +164,9 @@ class FileDialog(QDialog):
         self.favoriteList.addItem(favoriteItem)
 
     def set_filter(self, filter):
-        allFilter = filter.split(";;")
-        self.filterCombo.addItems(allFilter)
+        all_filter = filter.split(";;")
+        self.filterCombo.clear()
+        self.filterCombo.addItems(all_filter)
 
     def set_current_path(self, path):
         # print path

@@ -147,6 +147,7 @@ class Entity(ModelBase):
             elif hasattr(self, field):
                 setattr(self, field, result)
                 self.save()
+        return result
 
 
 class Department(ModelBase):
@@ -187,7 +188,7 @@ class Status(Entity):
         db_table = 'statuses'
 
     def upload_file(self, *args, **kwargs):
-        super(Status, self).upload_file(*args, **kwargs)
+        uploaded_file = super(Status, self).upload_file(*args, **kwargs)
         self.log_detail(
             detail='upload new {field} to {model} {name}'.format(
                 field=kwargs.get('field', 'thumbnail'),
@@ -195,6 +196,7 @@ class Status(Entity):
                 name=self.name
             )
         )
+        return uploaded_file
 
 
 class ApiUser(Entity):
@@ -213,7 +215,7 @@ class ApiUser(Entity):
         db_table = 'api_users'
 
     def upload_file(self, *args, **kwargs):
-        super(ApiUser, self).upload_file(*args, **kwargs)
+        uploaded_file = super(ApiUser, self).upload_file(*args, **kwargs)
         self.log_detail(
             detail='upload new {field} to {model} {name}'.format(
                 field=kwargs.get('field', 'thumbnail'),
@@ -221,6 +223,7 @@ class ApiUser(Entity):
                 name=self.user_login
             )
         )
+        return uploaded_file
 
 
 class Person(Entity):
@@ -277,7 +280,7 @@ class Person(Entity):
         return {'objects': self.groups, 'object_label_attr': 'code'}
 
     def upload_file(self, *args, **kwargs):
-        super(Person, self).upload_file(*args, **kwargs)
+        uploaded_file = super(Person, self).upload_file(*args, **kwargs)
         self.log_detail(
             detail='upload new {field} to {model} {name}'.format(
                 field=kwargs.get('field', 'thumbnail'),
@@ -285,6 +288,7 @@ class Person(Entity):
                 name=self.user_login
             )
         )
+        return uploaded_file
 
 
 def create_api_user(add_to_db=True, **data_dict):
@@ -323,7 +327,7 @@ class Project(Entity):
         db_table = 'projects'
 
     def upload_file(self, *args, **kwargs):
-        super(Project, self).upload_file(*args, **kwargs)
+        uploaded_file = super(Project, self).upload_file(*args, **kwargs)
         self.log_detail(
             detail='upload new {field} to {model} {name}'.format(
                 field=kwargs.get('field', 'thumbnail'),
@@ -331,6 +335,7 @@ class Project(Entity):
                 name=self.code
             )
         )
+        return uploaded_file
 
 
 NotePersonDeferred = DeferredThroughModel()
@@ -430,6 +435,7 @@ class Asset(ModelBase):
                                 null=True)
     project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='assets')
     asset_type = ForeignKeyField(column_name='asset_type_id', model=AssetType, field='id', backref='assets')
+
     tags = ManyToManyField(Tag, backref='assets', through_model=AssetTagDeferred)
     attachments = ManyToManyField(File, backref='assets', through_model=FileAssetDeferred)
     notes = ManyToManyField(Note, backref='assets', through_model=NoteAssetDeferred)
@@ -460,6 +466,7 @@ class Shot(ModelBase):
     cut_in = IntegerField(column_name='cut_in', null=True)
     cut_out = IntegerField(column_name='cut_out', null=True)
     cut_duration = IntegerField(column_name='cut_duration', null=True)
+    cut_order = IntegerField(column_name='cut_order', null=True)
     handles = CharField(column_name='handles', default='0+0')
     final_delivery = DateField(column_name='final_delivery', null=True)
 
@@ -467,6 +474,7 @@ class Shot(ModelBase):
                                 null=True)
     project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='shots')
     sequence = ForeignKeyField(column_name='sequence_id', model=Sequence, field='id', backref='shots')
+
     assets = ManyToManyField(Asset, backref='shots', through_model=ShotAssetDeferred)
     tags = ManyToManyField(Tag, backref='shots', through_model=ShotTagDeferred)
     attachments = ManyToManyField(File, backref='shots', through_model=FileShotDeferred)
@@ -601,6 +609,7 @@ class NotePersonConnection(ModelBase):
     note = ForeignKeyField(Note)
 
     class Meta:
+        indexes = ((('note', 'person'), True),)
         db_table = 'note_person_connection'
 
 
@@ -609,6 +618,7 @@ class NoteAssetConnection(ModelBase):
     note = ForeignKeyField(Note)
 
     class Meta:
+        indexes = ((('note', 'asset'), True),)
         db_table = 'note_asset_connection'
 
 
@@ -617,6 +627,7 @@ class NoteShotConnection(ModelBase):
     note = ForeignKeyField(Note)
 
     class Meta:
+        indexes = ((('shot', 'note'), True),)
         db_table = 'note_shot_connection'
 
 
@@ -625,6 +636,7 @@ class NoteTaskConnection(ModelBase):
     note = ForeignKeyField(Note)
 
     class Meta:
+        indexes = ((('task', 'note'), True),)
         db_table = 'note_task_connection'
 
 
@@ -633,6 +645,7 @@ class NotePlaylistConnection(ModelBase):
     note = ForeignKeyField(Note)
 
     class Meta:
+        indexes = ((('playlist', 'note'), True),)
         db_table = 'note_playlist_connection'
 
 
@@ -641,6 +654,7 @@ class NoteVersionConnection(ModelBase):
     note = ForeignKeyField(Note)
 
     class Meta:
+        indexes = ((('version', 'note'), True),)
         db_table = 'note_version_connection'
 
 
@@ -650,6 +664,7 @@ class FileProjectConnection(ModelBase):
     file = ForeignKeyField(File)
 
     class Meta:
+        indexes = ((('project', 'file'), True),)
         db_table = 'file_project_connection'
 
 
@@ -658,6 +673,7 @@ class FileAssetConnection(ModelBase):
     file = ForeignKeyField(File)
 
     class Meta:
+        indexes = ((('asset', 'file'), True),)
         db_table = 'file_asset_connection'
 
 
@@ -666,6 +682,7 @@ class FileShotConnection(ModelBase):
     file = ForeignKeyField(File)
 
     class Meta:
+        indexes = ((('shot', 'file'), True),)
         db_table = 'file_shot_connection'
 
 
@@ -674,6 +691,7 @@ class FileTaskConnection(ModelBase):
     file = ForeignKeyField(File)
 
     class Meta:
+        indexes = ((('task', 'file'), True),)
         db_table = 'file_task_connection'
 
 
@@ -682,6 +700,7 @@ class FileVersionConnection(ModelBase):
     file = ForeignKeyField(File)
 
     class Meta:
+        indexes = ((('version', 'file'), True),)
         db_table = 'file_version_connection'
 
 
@@ -690,6 +709,7 @@ class FileNoteConnection(ModelBase):
     file = ForeignKeyField(File)
 
     class Meta:
+        indexes = ((('note', 'file'), True),)
         db_table = 'file_note_connection'
 
 
@@ -698,6 +718,7 @@ class ProjectPersonConnection(ModelBase):
     person = ForeignKeyField(Person)
 
     class Meta:
+        indexes = ((('project', 'person'), True),)
         db_table = 'project_person_connection'
 
 
@@ -706,6 +727,7 @@ class GroupPersonConnection(ModelBase):
     person = ForeignKeyField(Person)
 
     class Meta:
+        indexes = ((('group', 'person'), True),)
         db_table = 'group_person_connection'
 
 
@@ -714,6 +736,7 @@ class AssetTagConnection(ModelBase):
     tag = ForeignKeyField(Tag)
 
     class Meta:
+        indexes = ((('asset', 'tag'), True),)
         db_table = 'asset_tag_connection'
 
 
@@ -722,6 +745,7 @@ class ShotTagConnection(ModelBase):
     tag = ForeignKeyField(Tag)
 
     class Meta:
+        indexes = ((('shot', 'tag'), True),)
         db_table = 'shot_tag_connection'
 
 
@@ -730,6 +754,7 @@ class ShotAssetConnection(ModelBase):
     asset = ForeignKeyField(Asset)
 
     class Meta:
+        indexes = ((('shot', 'asset'), True),)
         db_table = 'shot_asset_connection'
 
 
@@ -738,6 +763,7 @@ class TaskAssignToConnection(ModelBase):
     assign_to = ForeignKeyField(Person)
 
     class Meta:
+        indexes = ((('task', 'assign_to'), True),)
         db_table = 'task_assign_to_connection'
 
 
@@ -746,7 +772,9 @@ class VersionPlaylistConnection(ModelBase):
     playlist = ForeignKeyField(Playlist)
 
     class Meta:
+        indexes = ((('version', 'playlist'), True),)
         db_table = 'version_playlist_connection'
+
 
 FileProjectDeferred.set_model(FileProjectConnection)
 FileAssetDeferred.set_model(FileAssetConnection)

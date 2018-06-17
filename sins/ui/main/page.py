@@ -9,6 +9,7 @@ from sins.ui.main.project.project import ProjectMainWindow
 from sins.ui.main.media.media import MediaMainWindow
 from sins.ui.widgets.tab.custom_tab import CustomTabWindow, MainTabButton, CustomTabButton
 from sins.ui.widgets.action import SeparatorAction
+from sins.ui.widgets.round_label import RoundLabel
 from sins.utils.res import resource
 from sins.db.models import *
 from sins.db.permission import get_permission_projects
@@ -16,6 +17,114 @@ from sins.db.permission import get_permission_projects
 
 PageMenuStyle = resource.get_style("pagemenu")
 PageStyle = resource.get_style("page")
+
+
+class SignalLabel(QLabel):
+    enter = Signal()
+    press = Signal()
+    release = Signal()
+    leave = Signal()
+
+    def __init__(self, *args, **kwargs):
+        super(SignalLabel, self).__init__(*args, **kwargs)
+
+    def enterEvent(self, event):
+        self.enter.emit()
+
+    def mousePressEvent(self, event):
+        self.press.emit()
+
+    def mouseReleaseEvent(self, event):
+        self.release.emit()
+
+    def leaveEvent(self, event):
+        self.leave.emit()
+
+
+class UserButton(QWidget):
+    def __init__(self, *args, **kwargs):
+        super(UserButton, self).__init__(*args, **kwargs)
+
+        self.normalColor = 'transparent'
+        self.hoverColor = 'rgb(45,45,45)'
+        self.pressColor = 'rgb(70,70,70)'
+
+        self.init_ui()
+        self.create_menu()
+
+    def init_ui(self):
+        self.backLabel = QLabel(self)
+
+        self.userThumbnail = RoundLabel()
+        self.userThumbnail.setFixedSize(30, 30)
+        thumbnail = current_user_object.thumbnail
+        if thumbnail is not None and os.path.exists(thumbnail.host_path):
+            self.userThumbnail.setPixmap(resource.get_pixmap(thumbnail.host_path))
+        else:
+            self.userThumbnail.setPixmap(resource.get_pixmap('icon', 'User1.png'))
+        self.pulldownButton = QLabel()
+        self.pulldownButton.setAlignment(Qt.AlignCenter)
+        self.pulldownButton.setPixmap(resource.get_pixmap('button', 'arrow_down1_white.png', scale=20))
+        self.pulldownButton.setFixedSize(20, 35)
+        self.masterLayout = QHBoxLayout()
+        self.masterLayout.addWidget(self.userThumbnail)
+        # self.masterLayout.addSpacing(5)
+        self.masterLayout.addWidget(self.pulldownButton)
+        self.masterLayout.setAlignment(Qt.AlignLeft)
+        self.masterLayout.setContentsMargins(5, 0, 5, 0)
+        self.setLayout(self.masterLayout)
+
+        self.frontLabel = SignalLabel(self)
+        self.frontLabel.enter.connect(self.after_enter)
+        self.frontLabel.press.connect(self.after_press)
+        self.frontLabel.release.connect(self.after_release)
+        self.frontLabel.leave.connect(self.after_leave)
+
+        # self.setFixedWidth(100)
+
+        self.backLabel.setStyleSheet('background:%s;' % self.normalColor)
+
+    def create_menu(self):
+        self.toolButton = QToolButton(self)
+
+        self.userMneu = QMenu(self)
+        self.userMneu.setStyleSheet(PageMenuStyle)
+        self.loginAction = SeparatorAction('Logged in as {}'.format(current_user), self)
+        self.loginAction.setEnabled(False)
+        self.aboutAction = QAction('About', self)
+        self.profileAction = QAction('Profile', self)
+        self.logoutAction = QAction('Log Out', self)
+
+        self.userMneu.addAction(self.loginAction)
+        self.userMneu.addSeparator()
+        self.userMneu.addAction(self.aboutAction)
+        self.userMneu.addAction(self.profileAction)
+        self.userMneu.addAction(self.logoutAction)
+
+        self.toolButton.setPopupMode(QToolButton.InstantPopup)
+        self.toolButton.setMenu(self.userMneu)
+        self.toolButton.setFixedHeight(50)
+        self.toolButton.hide()
+
+    def resizeEvent(self, *args, **kwargs):
+        super(UserButton, self).resizeEvent(*args, **kwargs)
+        self.backLabel.setFixedSize(self.size())
+        self.frontLabel.setFixedSize(self.size())
+
+    def after_enter(self):
+        self.backLabel.setStyleSheet('background:%s;' % self.hoverColor)
+        self.setCursor(Qt.PointingHandCursor)
+
+    def after_press(self):
+        self.backLabel.setStyleSheet('background:%s;' % self.pressColor)
+
+    def after_release(self):
+        self.toolButton.showMenu()
+        self.backLabel.setStyleSheet('background:%s;' % self.hoverColor)
+
+    def after_leave(self):
+        self.backLabel.setStyleSheet('background:%s;' % self.normalColor)
+        self.setCursor(Qt.ArrowCursor)
 
 
 class PageWindow(CustomTabWindow):
@@ -62,20 +171,8 @@ class PageWindow(CustomTabWindow):
         mediaButton.set_core_property({'personId': current_user_object.id})
         self.add_tab(self.mediaWindow, mediaButton, "Media")
 
-        self.userMneu = QMenu(self)
-        self.userMneu.setStyleSheet(PageMenuStyle)
-        loginAction = SeparatorAction('Logged in as {}'.format(current_user), self)
-        loginAction.setEnabled(False)
-        aboutAction = QAction('About', self)
-        profileAction = QAction('Profile', self)
-        logoutAction = QAction('Log Out', self)
-        logoutAction.triggered.connect(self.log_out)
-        self.userMneu.addAction(loginAction)
-        self.userMneu.addSeparator()
-        self.userMneu.addAction(aboutAction)
-        self.userMneu.addAction(profileAction)
-        self.userMneu.addAction(logoutAction)
-        self.userButton = MainTabButton("", icon=resource.get_pic('icon', 'User1.png'), menu=self.userMneu)
+        self.userButton = UserButton()
+        self.userButton.logoutAction.triggered.connect(self.log_out)
         self.add_tail(self.userButton)
 
         self.load_tab()

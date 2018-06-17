@@ -25,7 +25,7 @@ def is_editable(db_instance=None, editable_permission=list()):
     """
     if current_permission == 'Read-only':
         return False
-    elif current_permission in ['Manager', 'Supervisor', 'Coordinator', 'Root']:
+    elif current_permission in ['Lead', 'Manager', 'Supervisor', 'Coordinator', 'Root']:
         return current_permission in editable_permission
     elif current_permission == 'Artist' and current_permission in editable_permission:
         if db_instance.created_by == current_user:

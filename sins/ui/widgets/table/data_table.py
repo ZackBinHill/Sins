@@ -21,6 +21,8 @@ logger = get_logger(__name__)
 EDITLABEL_SIZE = 20
 FOREIGN_POPULATE_DEPTH = 2
 
+ItemsPerPage = 0
+
 
 class PageLabelButton(QLabelButton):
     def __init__(self, name):
@@ -376,9 +378,7 @@ class BaseTree(QTreeWidget):
                     self.tempItemFields.append([item, index + 1, field, child.data])
                 self.dataItems.append(item)
                 setattr(item, 'tree', self)
-                setattr(item, 'data', child.data)
-                # QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
-                # QApplication.processEvents()
+                setattr(item, 'instance_data', child.data)
             else:
                 self.add_groups(child, parent=group_item)
 
@@ -459,8 +459,8 @@ class BaseTree(QTreeWidget):
             self.headItem.setText(index, '{}{}'.format(field.label_prefix, field.label))
             self.setColumnWidth(index, field.column_width)
             for item in self.dataItems:
-                # print item.data
-                self.add_field(item, index, field, item.data)
+                # print item.instance_data
+                self.add_field(item, index, field, item.instance_data)
             # self.set_item_widget()
             self.showFieldNames.append(field_name)
             self.showFields.append(field)
@@ -1056,7 +1056,7 @@ class DataWidget(QWidget):
         self.allPagesLabel = QLabel('of 5')
         self.itemsPerPageCombo = QComboBox()
         self.itemsPerPageCombo.addItems(['3', '10', '20', '50', '100', 'All'])
-        self.itemsPerPageCombo.setCurrentIndex(2)
+        self.itemsPerPageCombo.setCurrentIndex(ItemsPerPage)
         # self.itemsPerPageCombo.setEditable(True)
         self.itemsPerPageLabel = QLabel('per page')
         self.pageLayout.addStretch()

@@ -37,6 +37,7 @@ Department = [
 
 PermissionGroup = [
     {'code': 'Artist'},
+    {'code': 'Lead'},
     {'code': 'Manager'},
     {'code': 'Supervisor'},
     {'code': 'Coordinator'},

@@ -11,6 +11,8 @@ class RoundLabel(QLabel):
     def __init__(self, *args, **kwargs):
         super(RoundLabel, self).__init__(*args, **kwargs)
 
+        self.setAlignment(Qt.AlignCenter)
+
     def paintEvent(self, event):
         # super(RoundLabel, self).paintEvent(event)
 
@@ -24,13 +26,19 @@ class RoundLabel(QLabel):
         pixmap = self.pixmap().scaled(self.width(),
                                       self.height(),
                                       Qt.KeepAspectRatioByExpanding,
-                                      Qt.SmoothTransformation)
+                                      Qt.SmoothTransformation
+                                      )
+
         if pixmap.height() > 0:
             ratio = pixmap.width() / float(pixmap.height())
             if ratio >= 1:
-                painter.drawPixmap(-1 * (pixmap.width() - self.width()) / 2, 0, pixmap)
+                painter.drawPixmap(-1 * (pixmap.width() - self.width()) / 2,
+                                   (self.height() - pixmap.height()) / 2.0,
+                                   pixmap)
             else:
-                painter.drawPixmap(0, -1 * (pixmap.height() - self.height()) / 2, pixmap)
+                painter.drawPixmap((self.width() - pixmap.width()) / 2.0, 
+                                   -1 * (pixmap.height() - self.height()) / 2, 
+                                   pixmap)
 
 
 if __name__ == '__main__':

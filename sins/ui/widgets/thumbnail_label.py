@@ -21,10 +21,14 @@ class ThumbnailLabel(QWidget):
                  parent=None,
                  dynamic=False,
                  has_button=False,
-                 background='black'):
+                 background='black',
+                 read_cache=True,
+                 opencv=True):
         super(ThumbnailLabel, self).__init__(parent)
 
         self.dynamic = dynamic
+        self.read_cache = read_cache
+        self.use_opencv = opencv
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -33,7 +37,7 @@ class ThumbnailLabel(QWidget):
 
         self.label = ViewLabel(parent=self)
         # self.label.setAlignment(Qt.AlignCenter)
-        self.label.setText("Loading...")
+        self.label.setText("No Image...")
         self.label.hasButton = has_button
         self.label.setScaledContents(True)
 
@@ -66,8 +70,11 @@ class ThumbnailLabel(QWidget):
                 self.label.setText("No preview image")
 
 
-    def load_picture(self, imgFile):
-        self.read_file(imgFile)
+    def load_picture(self, img_file):
+        if self.use_opencv:
+            self.read_file(img_file)
+        else:
+            self.set_pixmap(img_file)
 
     def load_capture(self, capFile):
         # print capFile
@@ -84,7 +91,7 @@ class ThumbnailLabel(QWidget):
         if self.cap is not None:
             self.readThread = ReadThread(readFile, cap=self.cap, frame=min(self.frameNum / 2, 20))
         else:
-            self.readThread = ReadThread(readFile, fixwidth=200)
+            self.readThread = ReadThread(readFile, fixwidth=200, readcache=self.read_cache)
         self.readThread.readDone.connect(self.read_done)
         self.readThread.start()
 
@@ -93,6 +100,13 @@ class ThumbnailLabel(QWidget):
         shape = img.shape
         self.capRatio = float(shape[1]) / shape[0]
         pixmap = convert_img_from_frame(img)
+        self.label.setPixmap(pixmap)
+        self.set_resize_size()
+        self.cacheDone.emit()
+
+    def set_pixmap(self, image_file):
+        pixmap = QPixmap(image_file)
+        self.capRatio = float(pixmap.width()) / pixmap.height()
         self.label.setPixmap(pixmap)
         self.set_resize_size()
         self.cacheDone.emit()
@@ -108,9 +122,9 @@ class ThumbnailLabel(QWidget):
                                        frameOut=self.frameNum,
                                        step=self.step,
                                        fixwidth=200,
-                                       readfile=True,
-                                       tofile=True)
-        # self.cacheThread = CacheThread(capFile, 1, self.frameNum, step=self.step, fixwidth=200, readfile=True, tofile=True)
+                                       readcache=True,
+                                       tocache=True)
+        # self.cacheThread = CacheThread(capFile, 1, self.frameNum, step=self.step, fixwidth=200, readcache=True, tocache=True)
         self.cacheThread.cacheDone.connect(self.cache_done)
         self.cacheThread.start()
 
@@ -262,9 +276,10 @@ class ViewLabel(QLabel):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # panel = DataWidget()
-    panel = ThumbnailLabel(dynamic=True)
+    panel = ThumbnailLabel(dynamic=True, background='transparent', opencv=False)
     # panel.create_preview(TestMov("test.jpg"))
     # panel.create_preview(TestMov("test3.mov"))
-    panel.create_preview(TestMov("test.mp4"))
+    # panel.create_preview(TestMov("test.mp4"))
+    panel.create_preview('F:/Temp/pycharm/Sins_data/sins/File/0000/0000/0028/test.png')
     panel.show()
     app.exec_()

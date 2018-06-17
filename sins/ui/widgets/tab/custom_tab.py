@@ -12,12 +12,23 @@ from sins.utils.color import get_lum, other_to_rgb
 class CustomTabButton(QLabel):
     chooseItem = Signal(list)
 
-    def __init__(self, text, colorDict=None, icon=None, pulldown=None, menu=None, height=50, marginSize=10, hide=False, parent=None):
+    def __init__(self,
+                 text,
+                 colorDict=None,
+                 icon=None,
+                 icon_size=25,
+                 pulldown=None,
+                 menu=None,
+                 height=50,
+                 marginSize=10,
+                 hide=False,
+                 parent=None):
         super(CustomTabButton, self).__init__(parent)
 
         self.labeltext = text
         self.colorDict = colorDict
         self.icon = icon
+        self.icon_size = icon_size
         self.pulldown = pulldown
         self.menu = menu
         self.fixheight = height
@@ -32,7 +43,6 @@ class CustomTabButton(QLabel):
 
     def init_ui(self):
 
-        self.iconSize = 25
         self.pulldownSize = 20
 
         self.setFixedHeight(self.fixheight)
@@ -50,9 +60,9 @@ class CustomTabButton(QLabel):
             width = 10
         if self.icon is not None:
             iconMargin = 2
-            width = width + self.iconSize + iconMargin * 2
-            self.iconPos = QPoint(self.marginSize + iconMargin, (self.height() - self.iconSize) / 2.0)
-            self.textPos = self.textPos + QPoint(self.iconSize + iconMargin * 2, 0)
+            width = width + self.icon_size + iconMargin * 2
+            self.iconPos = QPoint(self.marginSize + iconMargin, (self.height() - self.icon_size) / 2.0)
+            self.textPos = self.textPos + QPoint(self.icon_size + iconMargin * 2, 0)
         if self.pulldown is not None or self.menu is not None:
             width = width + 10
             self.pulldownPos = QPoint(width - self.marginSize, (self.height() - self.pulldownSize) / 2.0)
@@ -85,7 +95,10 @@ class CustomTabButton(QLabel):
         painter = QPainter(self)
         painter.setFont(self.font())
         if self.icon != None:
-            icon = QPixmap(self.icon).scaled(self.iconSize, self.iconSize, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            if isinstance(self.icon, basestring):
+                icon = resource.get_pixmap(self.icon, scale=self.icon_size)
+            elif isinstance(self.icon, QPixmap):
+                icon = self.icon.scaled(self.icon_size, self.icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             painter.drawPixmap(self.iconPos, icon)
         if self.labeltext != "":
             painter.drawText(self.textRect, Qt.AlignCenter, self.labeltext)
@@ -167,7 +180,7 @@ class CustomTabButton(QLabel):
 
 
 class DefaultTabButton(CustomTabButton):
-    def __init__(self, text, icon=None, pulldown=None, menu=None, height=35, hide=False, parent=None):
+    def __init__(self, text, *args, **kwargs):
         colorDict = {
             "color":"black",
             'background':"gray",
@@ -176,11 +189,11 @@ class DefaultTabButton(CustomTabButton):
             "selectedcolor":"black",
             "selectedbackground":"white"
         }
-        super(DefaultTabButton, self).__init__(text, colorDict, icon, pulldown, menu, height=35, hide=hide, parent=parent)
+        super(DefaultTabButton, self).__init__(text, colorDict, height=35, *args, **kwargs)
 
 
 class MainTabButton(CustomTabButton):
-    def __init__(self, text, icon=None, pulldown=None, menu=None, parent=None):
+    def __init__(self, text, *args, **kwargs):
         colorDict = {
             "color":"white",
             'background':"rgb(30,30,30)",
@@ -189,11 +202,11 @@ class MainTabButton(CustomTabButton):
             "selectedcolor":"white",
             "selectedbackground":"rgb(70,70,70)"
         }
-        super(MainTabButton, self).__init__(text, colorDict, icon, pulldown, menu, hide=False, parent=parent)
+        super(MainTabButton, self).__init__(text, colorDict, *args, **kwargs)
 
 
 class ProjectTabButton(CustomTabButton):
-    def __init__(self, text, icon=None, pulldown=None, menu=None, hide=False, parent=None):
+    def __init__(self, text, *args, **kwargs):
         colorDict = {
             "color":"black",
             'background':"rgb(200, 200, 200)",
@@ -202,11 +215,11 @@ class ProjectTabButton(CustomTabButton):
             "selectedcolor":"black",
             "selectedbackground":"rgb(150, 150, 150)"
         }
-        super(ProjectTabButton, self).__init__(text, colorDict, icon, pulldown, menu, height=35, hide=hide, parent=parent)
+        super(ProjectTabButton, self).__init__(text, colorDict, height=35, *args, **kwargs)
 
 
 class MediaTabButton(CustomTabButton):
-    def __init__(self, text, icon=None, pulldown=None, menu=None, parent=None):
+    def __init__(self, text, *args, **kwargs):
         colorDict = {
             "color":"black",
             'background':"rgb(200, 200, 200)",
@@ -215,7 +228,7 @@ class MediaTabButton(CustomTabButton):
             "selectedcolor":"white",
             "selectedbackground":"rgb(40, 55, 60)"
         }
-        super(MediaTabButton, self).__init__(text, colorDict, icon, pulldown, menu, height=35, hide=False, parent=parent)
+        super(MediaTabButton, self).__init__(text, colorDict, height=35, *args, **kwargs)
 
 
 class CustomTabBar(QWidget):
