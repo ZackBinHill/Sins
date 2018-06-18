@@ -6,13 +6,13 @@ import os
 import random
 import time
 import datetime
-# from sins.db.test.db_test05 import *
 from sins.db.models import *
 from sins.db.default_run import run_default
 from sins.utils.encrypt import do_hash
 from test_person import gen_one_gender_word
 
-TEST_DATA_FOLDER = os.path.join(os.path.dirname(__file__), 'test_data')
+# TEST_DATA_FOLDER = os.path.join(os.path.dirname(__file__), 'test_data')
+TEST_DATA_FOLDER = os.path.abspath('../../../test/test_data')
 
 
 def get_random_time(t1=(2010,1,1,0,0,0,0,0,0), t2=(2018,12,31,23,59,59,0,0,0)):
@@ -44,19 +44,19 @@ def test_person():
     print '# ------------test person data------------ #'
     person_data = []
     for i in range(200):
-        sex = ['male', 'female'][int(random.random() * 2)]
+        sex = ['male', 'female'][random.randint(0, 1)]
         male = sex == 'male'
         first_name = gen_one_gender_word(male=male)
         last_name = gen_one_gender_word(male=male)
-        active = [True, False][int(random.random() * 2)]
+        active = [True, False][random.randint(0, 1)]
         email = '{}{}@xxx.com'.format(first_name.lower(), last_name.lower())
         join_date = get_random_time()
         leave_date = None
         if not active:
             leave_date = join_date + datetime.timedelta(days=365)
 
-        department = int(random.random() * 10 + 1)
-        permission_group = int(random.random() * 5 + 1)
+        department = random.randint(1, 10)
+        permission_group = random.randint(1, 5)
         thumbnail = None
 
         person_data.append({
@@ -221,8 +221,8 @@ def test_seq_assettype():
     print '# ------------test sequence, assettype data------------ #'
     for i in range(5):
         project = Project.get(id=i + 1)
-        for i in range(int(random.random() * 10 + 5)):
-            status = ['wts', 'wip'][int(random.random() * 2)]
+        for i in range(random.randint(5, 15)):
+            status = ['wts', 'wip'][random.randint(0, 1)]
             Sequence.create(**{'name': '%s_seq%s' % (project.code, i),
                                'project': project,
                                'description': 'This is a test sequence',
@@ -242,11 +242,11 @@ def test_shot():
     shot_data = []
     for seq in Sequence.select(Sequence, Project).join(Project):
         project = seq.project
-        for j in range(int(random.random() * 50 + 10)):
-            description = 'this is description ' * int(random.random() * 10 + 1)
-            requirement = 'requirement is here' * int(random.random() * 10 + 1)
+        for j in range(random.randint(10, 50)):
+            description = 'this is description ' * random.randint(1, 10)
+            requirement = 'requirement is here' * random.randint(1, 10)
             head_in = 1001
-            tail_out = int(random.random() * 100 + 1016)
+            tail_out = random.randint(1016, 1116)
             duration = tail_out - head_in
             cut_in = 1009
             cut_out = tail_out - 8
@@ -280,9 +280,9 @@ def test_asset():
     asset_data = []
     for assettype in AssetType.select(AssetType, Project).join(Project):
         project = assettype.project
-        for j in range(int(random.random() * 5)):
+        for j in range(random.randint(0, 5)):
             name = '%s_%s_%s' % (project.code, assettype.name, j)
-            description = 'this is description ' * int(random.random() * 10 + 1)
+            description = 'this is description ' * random.randint(1, 10)
 
             asset_data.append({
                 'name': name,
@@ -301,7 +301,7 @@ def test_shot_asset_relationship():
     for shot in shots:
         print shot, shot.project.code
         project = shot.project
-        asset_num = int(random.random() * 5 + 1)
+        asset_num = random.randint(1, 5)
         shot.assets.add(Asset.select().where(Asset.project == project).order_by(fn.Random()).limit(asset_num))
 
 
@@ -313,7 +313,181 @@ def test_shot_asset_relationship():
     print 'test shot asset relationship successful'
 
 
+def test_task():
+    print '# ------------test task data------------ #'
+    current_user_object = get_current_user_object()
+
+    shots = (Shot.select(Shot, Project).join(Project).where(Project.code.in_(['DRM', 'TLW'])))
+    assets = (Asset.select(Asset, Project).join(Project).where(Project.code.in_(['DRM', 'TLW'])))
+    cmp_step = PipelineStep.get(name='cmp')
+    lgt_step = PipelineStep.get(name='lgt')
+    mod_step = PipelineStep.get(name='mod')
+
+    task_data = []
+    for shot in shots:
+        project = shot.project
+        for i in range(random.randint(1, 3)):
+            task_name = 'comp_%s' % i
+            task_begin = get_random_time()
+            task_end = get_random_time()
+            task_plan = int(datetime.timedelta(days=random.randint(1, 7)).total_seconds())
+
+            task_data.append({
+                'name': task_name,
+                'begin_date': task_begin,
+                'end_date': task_end,
+                'planned_time': task_plan,
+                'shot': shot,
+                'asset': None,
+                'project': project,
+                'step': cmp_step,
+                'assigned_from': current_user_object,
+            })
+        for i in range(random.randint(1, 3)):
+            task_name = 'light_%s' % i
+            task_begin = get_random_time()
+            task_end = get_random_time()
+            task_plan = int(datetime.timedelta(days=random.randint(1, 3)).total_seconds())
+
+            task_data.append({
+                'name': task_name,
+                'begin_date': task_begin,
+                'end_date': task_end,
+                'planned_time': task_plan,
+                'shot': shot,
+                'asset': None,
+                'project': project,
+                'step': lgt_step,
+                'assigned_from': current_user_object,
+            })
+    for asset in assets:
+        project = asset.project
+        for i in range(random.randint(1, 3)):
+            task_name = 'model_%s' % i
+            task_begin = get_random_time()
+            task_end = get_random_time()
+            task_plan = int(datetime.timedelta(days=random.randint(1, 3)).total_seconds())
+
+            task_data.append({
+                'name': task_name,
+                'begin_date': task_begin,
+                'end_date': task_end,
+                'planned_time': task_plan,
+                'shot': None,
+                'asset': asset,
+                'project': project,
+                'step': mod_step,
+                'assigned_from': current_user_object,
+            })
+    # print task_data
+    Task.insert_many(task_data).execute()
+    print 'test task data successful'
+
+
+def test_timelog():
+    print '# ------------test timelog data------------ #'
+    tasks = (Task.select().limit(100))
+    prefetch(tasks, Shot)
+    prefetch(tasks, Asset)
+    prefetch(tasks, Project)
+
+    timelog_data = []
+    for task in tasks:
+        shot = task.shot
+        asset = task.asset
+        project = task.project
+        # print shot, asset, project
+        # print task.shot, task.asset, task.project
+        for i in range(random.randint(3, 10)):
+            description = 'this is description of timelog %s' % i
+            duration = int(datetime.timedelta(days=random.randint(1, 2)).total_seconds())
+
+            timelog_data.append({
+                'description': description,
+                'duration': duration,
+                'task': task,
+                'shot': shot,
+                'asset': asset,
+                'project': project,
+            })
+
+    Timelog.insert_many(timelog_data).execute()
+    print 'test timelog data successful'
+
+
+def test_version():
+    print '# ------------test version data------------ #'
+    tasks = (Task.select())
+    prefetch(tasks, Shot, Sequence)
+    prefetch(tasks, Asset, AssetType)
+    prefetch(tasks, Project)
+
+    version_data = []
+    for task in tasks:
+        shot = task.shot
+        seq = shot.sequence if shot is not None else None
+        asset = task.asset
+        asset_type = asset.asset_type if asset is not None else None
+        project = task.project
+
+        entity = shot if shot is not None else asset
+
+        for i in range(1, random.randint(1, 10)):
+            name = '{entity}_{task}_{version}'.format(entity=entity.name, task=task.name, version='v%03d' % i)
+            description = 'this is description of %s' % name
+            submit_type = ['Dailies', 'Publish'][random.randint(0, 1)]
+            status = ['wip', 'smtr', 'smts', 'smtc', 'aprl', 'aprs', 'aprc'][random.randint(0, 6)]
+            version_path = 'this should be a path of version files'
+            path_to_movie = './path/to/version/version.mov'
+            path_to_frame = './path/to/version/version.####.exr'
+
+            version_data.append({
+                'name': name,
+                'description': description,
+                'submit_type': submit_type,
+                'status': status,
+                'version_path': version_path,
+                'path_to_movie': path_to_movie,
+                'path_to_frame': path_to_frame,
+
+                'task': task,
+                'project': project,
+                'shot': shot,
+                'sequence': seq,
+                'asset': asset,
+                'asset_type': asset_type,
+            })
+
+    Version.insert_many(version_data).execute()
+    print 'test version data successful'
+
+
+def test_add_version_uploaded_movie():
+    print '# ------------test add version uploaded_movie data------------ #'
+    test_movie01 = os.path.join(TEST_DATA_FOLDER, 'version', 'version01.mp4')
+    test_movie02 = os.path.join(TEST_DATA_FOLDER, 'version', 'version02.mov')
+    test_movie03 = os.path.join(TEST_DATA_FOLDER, 'version', 'version03.mov')
+    test_movie04 = os.path.join(TEST_DATA_FOLDER, 'version', 'version04.jpg')
+
+    f1 = upload_file(test_movie01)
+    f2 = upload_file(test_movie02)
+    f3 = upload_file(test_movie03)
+    f4 = upload_file(test_movie04)
+
+    uploaded_files = [f1, f2, f3, f4]
+
+    versions = (Version.select().order_by(fn.Random()).limit(500))
+
+    for version in versions:
+        f = uploaded_files[random.randint(0, 3)]
+        version.update_field(uploaded_movie=f)
+
+    print 'test add version uploaded_movie successful'
+
+
 if __name__ == '__main__':
+    print TEST_DATA_FOLDER
+
     drop_and_create_table()
 
     create_default()
@@ -329,6 +503,10 @@ if __name__ == '__main__':
     test_shot()
     test_asset()
     test_shot_asset_relationship()
+    test_task()
+    test_timelog()
+    test_version()
+    test_add_version_uploaded_movie()
 
     database.close()
     print 'test finish, close connection'

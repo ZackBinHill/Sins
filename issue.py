@@ -79,6 +79,29 @@ status icon referred_table 编辑
 project persons
 group persons
 
+创建数据
+File,
+Department,
+PermissionGroup,
+ApiUser,
+Person,
+Status,
+Project,
+Group,
+PipelineStep,
+Sequence,
+AssetType,
+Tag,
+Asset,
+Shot,
+Task,
+Timelog,
+Playlist,
+Version,
+Note,
+
+各个数据的detail页面
+
 # status添加description
 # sequence添加status
 
@@ -97,6 +120,7 @@ database host
 database port
 数据文件路径
 rv路径
+提交version自动更新shot缩略图
 user setting:
 登陆名
 密码
@@ -111,25 +135,30 @@ media历史
 # media scrollbar样式
 media可选择
 # qtcharts编译
-project detail
 @功能
-文件上传
-上传用户图片生成小尺寸.thumbnail
+# 文件上传
+# 上传用户图片生成小尺寸.thumbnail
 # previewlabel加载图片时生成.thumbnail
 # PreviewLabel更名
 文件的权限问题
 
+
+检查所有文件, 删除无用
+code style
+文件, 函数说明
+
+
 rv集成
 安装窗口
 登陆窗口
+邮件系统
+统计
+mysql trigger
+api
+python3支持
 # 加载gif01
 # 加载gif02
 # 数据库历史记录
-检查所有文件, 删除无用
-mysql trigger
-主窗口去除边框?
-统计
-code style
-文件, 函数说明
-api
-python3支持
+
+# 主窗口去除边框?
+

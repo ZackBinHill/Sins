@@ -2,13 +2,12 @@
 # __author__ = 'XingHuan'
 # 2/23/2018
 
-import os
 import sys
 import time
 import math
 import sins.module.cv as cv2
 from sins.module.sqt import *
-from sins.ui.widgets.opencv import CacheThread, convert_img_from_frame, convert_img_from_string
+from sins.utils.io.opencv import CacheThread, convert_img_from_frame, convert_img_from_string
 from sins.test.test_res import TestMov
 from sins.utils.res import resource
 
@@ -60,7 +59,8 @@ class Panel(QWidget):
         # self.load_capture(TestMov("test.mp4"))
         # self.load_capture(TestMov("test2.mp4"))
         # self.load_capture(TestMov("test1080.mov"))
-        self.load_capture(TestMov("test3.mov"))
+        # self.load_capture(TestMov("test3.mov"))
+        self.load_capture(TestMov("out.mov"))
 
     def initUi(self):
         self.masterLayout = QVBoxLayout()

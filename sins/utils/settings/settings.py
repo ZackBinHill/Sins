@@ -2,9 +2,12 @@
 # __author__ = 'XingHuan'
 # 6/17/2018
 
+from os.path import dirname as opd
+from os.path import join as opj
 from sins.module.sqt import QSettings, to_unicode
 
-Global_Setting = QSettings(QSettings.IniFormat, QSettings.SystemScope, 'Sins', 'sins')
+# Global_Setting = QSettings(QSettings.IniFormat, QSettings.SystemScope, 'Sins', 'sins')
+Global_Setting = QSettings(opj(opd(opd(opd(opd(__file__)))), 'sins.ini'), QSettings.IniFormat)
 User_Setting = QSettings(QSettings.IniFormat, QSettings.UserScope, 'Sins', 'sins')
 
 

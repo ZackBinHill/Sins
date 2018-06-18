@@ -8,8 +8,12 @@ global_settings = declare_constants(
     database_type='Database/Type',
     database_host='Database/Host',
     database_port='Database/Port',
+
     data_path='Data/path',
-    rv_path='App/rv',
+
+    thumb_auto_update='Sins/thumb_auto_update',
+
+    rv_path='App/rv_path',
 )
 
 user_settings = declare_constants(

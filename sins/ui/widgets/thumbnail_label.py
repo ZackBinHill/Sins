@@ -2,17 +2,12 @@
 # __author__ = 'XingHuan'
 # 2/10/2018
 
-import os
 import sys
 import sins.module.cv as cv2
 from sins.module.sqt import *
-from opencv import CacheThread, ReadThread, convert_img_from_frame, convert_img_from_string
-from sins.test.test_res import TestMov
+from sins.utils.io.opencv import CacheThread, ReadThread, convert_img_from_frame, convert_img_from_string
 from sins.utils.res import resource
-from sins.utils.const import VIDEO_EXT, IMG_EXT
-
-
-MAX_CACHE_FRAMES = 50.0
+from sins.utils.const import VIDEO_EXT, IMG_EXT, THUMB_MAX_CACHE_FRAMES, THUMB_FIXED_WIDTH
 
 
 class ThumbnailLabel(QWidget):
@@ -91,7 +86,7 @@ class ThumbnailLabel(QWidget):
         if self.cap is not None:
             self.readThread = ReadThread(readFile, cap=self.cap, frame=min(self.frameNum / 2, 20))
         else:
-            self.readThread = ReadThread(readFile, fixwidth=200, readcache=self.read_cache)
+            self.readThread = ReadThread(readFile, fixwidth=THUMB_FIXED_WIDTH, readcache=self.read_cache)
         self.readThread.readDone.connect(self.read_done)
         self.readThread.start()
 
@@ -113,15 +108,16 @@ class ThumbnailLabel(QWidget):
 
     def cache_cap(self, capFile):
         self.step = 1
-        if self.frameNum > MAX_CACHE_FRAMES:
-            self.step = int(self.frameNum / MAX_CACHE_FRAMES)
+        if self.frameNum > THUMB_MAX_CACHE_FRAMES:
+            self.step = int(self.frameNum / THUMB_MAX_CACHE_FRAMES)
         # print step
         self.cacheThread = CacheThread(capFile,
                                        cap=self.cap,
                                        frameIn=1,
                                        frameOut=self.frameNum,
                                        step=self.step,
-                                       fixwidth=200,
+                                       fix_length=False,
+                                       fixwidth=THUMB_FIXED_WIDTH,
                                        readcache=True,
                                        tocache=True)
         # self.cacheThread = CacheThread(capFile, 1, self.frameNum, step=self.step, fixwidth=200, readcache=True, tocache=True)
@@ -276,10 +272,11 @@ class ViewLabel(QLabel):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # panel = DataWidget()
-    panel = ThumbnailLabel(dynamic=True, background='transparent', opencv=False)
+    panel = ThumbnailLabel(dynamic=True, background='transparent')
     # panel.create_preview(TestMov("test.jpg"))
     # panel.create_preview(TestMov("test3.mov"))
     # panel.create_preview(TestMov("test.mp4"))
-    panel.create_preview('F:/Temp/pycharm/Sins_data/sins/File/0000/0000/0028/test.png')
+    # panel.create_preview('F:/Temp/pycharm/Sins_data/sins/File/0000/0000/0028/test.png')
+    panel.create_preview('F:/Temp/pycharm/Sins_data/sins/File/0000/0000/0036/version01.mp4')
     panel.show()
     app.exec_()

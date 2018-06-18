@@ -16,6 +16,7 @@ from sins.utils.log import get_logger
 
 
 logger = get_logger(__name__)
+logger.debug('load models from %s' % __file__)
 
 
 DATA_PATH = 'F:/Temp/pycharm/Sins_data/sins'
@@ -76,6 +77,10 @@ class ModelBase(Model):
                    column_name=None,
                    detail=None):
         if detail is None:
+            if isinstance(new_value, ModelBase):
+                new_value = new_value.id
+            if isinstance(old_value, ModelBase):
+                old_value = old_value.id
             detail = u'update {column} from {old} to {new}'.format(column=column_name,
                                                                    old=old_value,
                                                                    new=new_value)
@@ -108,6 +113,33 @@ class File(ModelBase):
                                             self.file_name)
 
 
+def create_thumb(file_path):
+    import sins.module.cv as cv2
+    from sins.utils.const import VIDEO_EXT, IMG_EXT, THUMB_MAX_CACHE_FRAMES, THUMB_FIXED_WIDTH
+    from sins.utils.io.opencv import CacheThread, ReadThread
+
+    if os.path.splitext(file_path)[1] in VIDEO_EXT:
+        cap = cv2.VideoCapture(file_path)
+        frame_num = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        step = 1
+        if frame_num > THUMB_MAX_CACHE_FRAMES:
+            step = int(frame_num / THUMB_MAX_CACHE_FRAMES)
+
+        thread = CacheThread(capFile=file_path,
+                             cap=cap,
+                             fixwidth=THUMB_FIXED_WIDTH,
+                             frameIn=1,
+                             frameOut=frame_num,
+                             step=step,
+                             tocache=True)
+        thread.start_cache()
+    elif os.path.splitext(file_path)[1] in IMG_EXT:
+        thread = ReadThread(readFile=file_path,
+                             fixwidth=THUMB_FIXED_WIDTH
+                            )
+        thread.start_cache()
+
+
 def upload_file(file_path, description=None):
     if os.path.exists(file_path):
         f = File.create(
@@ -120,6 +152,7 @@ def upload_file(file_path, description=None):
         if not os.path.exists(os.path.dirname(target_path)):
             os.makedirs(os.path.dirname(target_path))
         shutil.copyfile(file_path, target_path)
+        create_thumb(target_path)
         return f
     else:
         logger.warning('upload file %s not exist' % file_path)
@@ -135,6 +168,10 @@ FileNoteDeferred = DeferredThroughModel()
 
 
 class Entity(ModelBase):
+    @property
+    def label_name(self):
+        return self.id
+
     def upload_file(self, file_path, description=None, field='thumbnail'):
         result = upload_file(file_path, description)
         if result is not None:
@@ -147,6 +184,13 @@ class Entity(ModelBase):
             elif hasattr(self, field):
                 setattr(self, field, result)
                 self.save()
+            self.log_detail(
+                detail='upload new {field} to {model} {name}'.format(
+                    field=field,
+                    model=self.__class__.__name__,
+                    name=self.label_name
+                )
+            )
         return result
 
 
@@ -187,16 +231,9 @@ class Status(Entity):
     class Meta:
         db_table = 'statuses'
 
-    def upload_file(self, *args, **kwargs):
-        uploaded_file = super(Status, self).upload_file(*args, **kwargs)
-        self.log_detail(
-            detail='upload new {field} to {model} {name}'.format(
-                field=kwargs.get('field', 'thumbnail'),
-                model=self.__class__.__name__,
-                name=self.name
-            )
-        )
-        return uploaded_file
+    @property
+    def label_name(self):
+        return self.name
 
 
 class ApiUser(Entity):
@@ -214,16 +251,9 @@ class ApiUser(Entity):
     class Meta:
         db_table = 'api_users'
 
-    def upload_file(self, *args, **kwargs):
-        uploaded_file = super(ApiUser, self).upload_file(*args, **kwargs)
-        self.log_detail(
-            detail='upload new {field} to {model} {name}'.format(
-                field=kwargs.get('field', 'thumbnail'),
-                model=self.__class__.__name__,
-                name=self.user_login
-            )
-        )
-        return uploaded_file
+    @property
+    def label_name(self):
+        return self.user_login
 
 
 class Person(Entity):
@@ -279,16 +309,9 @@ class Person(Entity):
     def group_objects(self):
         return {'objects': self.groups, 'object_label_attr': 'code'}
 
-    def upload_file(self, *args, **kwargs):
-        uploaded_file = super(Person, self).upload_file(*args, **kwargs)
-        self.log_detail(
-            detail='upload new {field} to {model} {name}'.format(
-                field=kwargs.get('field', 'thumbnail'),
-                model=self.__class__.__name__,
-                name=self.user_login
-            )
-        )
-        return uploaded_file
+    @property
+    def label_name(self):
+        return self.user_login
 
 
 def create_api_user(add_to_db=True, **data_dict):
@@ -326,16 +349,9 @@ class Project(Entity):
     class Meta:
         db_table = 'projects'
 
-    def upload_file(self, *args, **kwargs):
-        uploaded_file = super(Project, self).upload_file(*args, **kwargs)
-        self.log_detail(
-            detail='upload new {field} to {model} {name}'.format(
-                field=kwargs.get('field', 'thumbnail'),
-                model=self.__class__.__name__,
-                name=self.code
-            )
-        )
-        return uploaded_file
+    @property
+    def label_name(self):
+        return self.code
 
 
 NotePersonDeferred = DeferredThroughModel()
@@ -353,6 +369,10 @@ class Note(Entity):
 
     class Meta:
         db_table = 'notes'
+
+    @property
+    def label_name(self):
+        return self.subject
 
 
 NoteAssetDeferred = DeferredThroughModel()
@@ -426,7 +446,7 @@ class Tag(ModelBase):
 AssetTagDeferred = DeferredThroughModel()
 
 
-class Asset(ModelBase):
+class Asset(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
     status = CharField(column_name='status', default='wts')
@@ -444,6 +464,10 @@ class Asset(ModelBase):
         db_table = 'assets'
 
     @property
+    def label_name(self):
+        return self.name
+
+    @property
     def asset_type_object(self):
         if self.asset_type:
             return {'object': self.asset_type, 'label': self.asset_type.name}
@@ -454,7 +478,7 @@ ShotTagDeferred = DeferredThroughModel()
 ShotAssetDeferred = DeferredThroughModel()
 
 
-class Shot(ModelBase):
+class Shot(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
     requirement = TextField(column_name='requirement', null=True)
@@ -484,6 +508,10 @@ class Shot(ModelBase):
         db_table = 'shots'
 
     @property
+    def label_name(self):
+        return self.name
+
+    @property
     def sequence_object(self):
         if self.sequence:
             return {'object': self.sequence, 'label': self.sequence.name}
@@ -493,7 +521,7 @@ class Shot(ModelBase):
 TaskAssignToDeferred = DeferredThroughModel()
 
 
-class Task(ModelBase):
+class Task(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
     begin_date = DateField(column_name='begin_date', null=True)
@@ -503,11 +531,12 @@ class Task(ModelBase):
 
     thumbnail = ForeignKeyField(column_name='thumbnail_id', model=File, field='id',
                                 null=True)
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='shots')
+    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='tasks')
     shot = ForeignKeyField(column_name='shot_id', model=Shot, field='id', backref='tasks', null=True)
     asset = ForeignKeyField(column_name='asset_id', model=Asset, field='id', backref='tasks', null=True)
     step = ForeignKeyField(column_name='step_id', model=PipelineStep, field='id', backref='tasks', null=False)
     assigned_from = ForeignKeyField(column_name='person_id', model=Person, field='id', backref='assignment', null=True)
+
     assigned_to = ManyToManyField(Person, backref='tasks', through_model=TaskAssignToDeferred)
     attachments = ManyToManyField(File, backref='tasks', through_model=FileTaskDeferred)
     notes = ManyToManyField(Note, backref='tasks', through_model=NoteTaskDeferred)
@@ -516,11 +545,22 @@ class Task(ModelBase):
         db_table = 'tasks'
 
     @property
+    def label_name(self):
+        return self.name
+
+    @property
+    def parent(self):
+        if self.shot is not None:
+            return self.shot
+        elif self.asset is not None:
+            return self.asset
+        else:
+            return None
+
+    @property
     def link_object(self):
-        if self.asset:
-            return {'object': self.asset, 'label': self.asset.name}
-        if self.shot:
-            return {'object': self.shot, 'label': self.shot.name}
+        if self.parent is not None:
+            return {'object': self.parent, 'label': self.parent.name}
         return None
 
     @property
@@ -532,7 +572,7 @@ class Task(ModelBase):
 
 class Timelog(ModelBase):
     description = TextField(column_name='description', null=True)
-    duration = TimeField(column_name='duration', null=True)
+    duration = TimestampField(column_name='duration', null=True)
 
     project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='timelogs')
     task = ForeignKeyField(column_name='task_id', model=Task, field='id', backref='timelogs')
@@ -558,10 +598,10 @@ class Playlist(ModelBase):
 VersionPlaylistDeferred = DeferredThroughModel()
 
 
-class Version(ModelBase):
+class Version(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
-    submit_type = CharField(column_name='submit_type', default='dailies')  # dailies / publish
+    submit_type = CharField(column_name='submit_type', default='Dailies')  # Dailies / Publish
     status = CharField(column_name='status', default='wip')
     version_path = TextField(column_name='version_path', null=True)
     path_to_movie = TextField(column_name='path_to_movie', null=True)
@@ -576,12 +616,21 @@ class Version(ModelBase):
                                  null=True)
     asset = ForeignKeyField(column_name='asset_id', model=Asset, field='id', backref='versions', null=True)
     task = ForeignKeyField(column_name='task_id', model=Task, field='id', backref='versions')
+
     playlists = ManyToManyField(Playlist, backref='versions', through_model=VersionPlaylistDeferred)
     attachments = ManyToManyField(File, backref='versions', through_model=FileVersionDeferred)
     notes = ManyToManyField(Note, backref='versions', through_model=NoteVersionDeferred)
 
     class Meta:
         db_table = 'versions'
+
+    @property
+    def label_name(self):
+        return self.name
+
+    @property
+    def thumbnail(self):
+        return self.uploaded_movie
 
 
 # relationship
