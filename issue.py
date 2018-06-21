@@ -34,10 +34,7 @@
 # res文件移出utils
 # 缩略图全部为文件id
 # Test文件移出sins文件夹
-尽量使用单行edit tooltip显示全部
-
 # 提交github
-优化filetypes
 # 测试文件类型:
 # image(png, jpg),
 # text(txt, py, rv, edl),
@@ -63,8 +60,30 @@
 # 删除git package文件夹
 # asset sequence link? > 暂时不要
 # note, file连接为many
+
+database name作为config
+
+user上次登陆时间
+使用deferredmodel
+version添加step外键
+
+
+jpg文件无法加载
+# project缩略图圆角
+# media字符限制
+播放器使用鼠标滚轮
+
+优化filetypes
+
+
+尽量使用单行edit tooltip显示全部
 field属性全部从config文件获取
 新的权限方法?
+
+
+
+
+
 advanced group
 
 优化查询速度prefetch 需要大量数据测试
@@ -74,10 +93,10 @@ advanced group
 status icon referred_table 编辑
 
 多外键celledit
+单个外键celledit可编辑
 数据库搜索
 可选择列的搜索框
-project persons
-group persons
+
 
 创建数据
 File,
@@ -126,6 +145,7 @@ user setting:
 密码
 窗口位置大小
 表的自定义过滤方法
+每个表的config
 media历史
 最近浏览历史
 最近项目
@@ -156,6 +176,8 @@ rv集成
 mysql trigger
 api
 python3支持
+添加自定义字段
+自定义表
 # 加载gif01
 # 加载gif02
 # 数据库历史记录

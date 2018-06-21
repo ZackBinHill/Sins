@@ -8,12 +8,11 @@ import math
 import sins.module.cv as cv2
 from sins.module.sqt import *
 from sins.utils.io.opencv import CacheThread, convert_img_from_frame, convert_img_from_string
-from sins.test.test_res import TestMov
 from sins.utils.res import resource
+from sins.test.test_res import TestMov
 
-ThisFolder = os.path.dirname(__file__)
-Icon_Size = 24
 
+ICON_SIZE = 24
 MAX_REFRESH_FPS = 100
 CACHE_SEGMENTS = 4
 
@@ -30,9 +29,9 @@ def get_frame_list(frameIn, frameOut):
     return frameStr
 
 
-class Panel(QWidget):
+class Player(QWidget):
     def __init__(self, parent=None):
-        super(Panel, self).__init__(parent)
+        super(Player, self).__init__(parent)
 
         self.initUi()
 
@@ -40,6 +39,7 @@ class Panel(QWidget):
         self.cacheFrames = {}
         self.cacheDone = False
         self.fps = 1
+        self.capRatio = 1.0
         self.frameNum = 0
         self.frameIn = 1
         self.frameOut = 1
@@ -54,13 +54,6 @@ class Panel(QWidget):
         self.set_signal()
 
         self.manualStart = 0
-
-        # self.load_capture(TestMov("test.mov"))
-        # self.load_capture(TestMov("test.mp4"))
-        # self.load_capture(TestMov("test2.mp4"))
-        # self.load_capture(TestMov("test1080.mov"))
-        # self.load_capture(TestMov("test3.mov"))
-        self.load_capture(TestMov("out.mov"))
 
     def initUi(self):
         self.masterLayout = QVBoxLayout()
@@ -350,7 +343,7 @@ class Panel(QWidget):
         self.playSlider.valueChanged.connect(self.manual_frame)
 
     def deleteLater(self):
-        super(Panel, self).deleteLater()
+        super(Player, self).deleteLater()
         # print "deleteLater"
         self.clearLayout(self.masterLayout)
 
@@ -366,7 +359,7 @@ class Panel(QWidget):
                     self.clearLayout(child.layout())
 
     def resizeEvent(self, QResizeEvent):
-        super(Panel, self).resizeEvent(QResizeEvent)
+        super(Player, self).resizeEvent(QResizeEvent)
         currentW = self.viewWidget.width()
         currentH = self.viewWidget.height()
         if currentH > 0:
@@ -606,9 +599,9 @@ class LabelButton1(QLabel):
         self.icon = icon
         if self.icon:
             self.setToolTip("%s" % self.icon)
-            self.imagePixmap = resource.get_pixmap('player', '%s.png' % (self.icon), scale=Icon_Size)
-            self.imageHoverPixmap = resource.get_pixmap('player', '%s_hover.png' % (self.icon), scale=Icon_Size)
-            self.imageClickedPixmap = resource.get_pixmap('player', '%s_clicked.png' % (self.icon), scale=Icon_Size)
+            self.imagePixmap = resource.get_pixmap('player', '%s.png' % (self.icon), scale=ICON_SIZE)
+            self.imageHoverPixmap = resource.get_pixmap('player', '%s_hover.png' % (self.icon), scale=ICON_SIZE)
+            self.imageClickedPixmap = resource.get_pixmap('player', '%s_clicked.png' % (self.icon), scale=ICON_SIZE)
             self.setPixmap(self.imagePixmap)
 
         self.textStr = text
@@ -616,7 +609,7 @@ class LabelButton1(QLabel):
         self.textHoverStr = "<font color=#00A2FF>%s</font>" % text
         self.textClickedStr = "<font color=#0076BA>%s</font>" % text
         if self.textStr:
-            self.setFixedWidth(Icon_Size)
+            self.setFixedWidth(ICON_SIZE)
             self.setAlignment(Qt.AlignCenter)
             self.setText(self.textNormalStr)
 
@@ -656,9 +649,9 @@ class LabelButton2(QLabel):
         self.icon = icon
         if self.icon:
             self.setToolTip("%s" % self.icon)
-            self.imagePixmap = resource.get_pixmap('player', '%s.png' % (self.icon), scale=Icon_Size)
-            self.imageHoverPixmap = resource.get_pixmap('player', '%s_hover.png' % (self.icon), scale=Icon_Size)
-            self.imageClickedPixmap = resource.get_pixmap('player', '%s_clicked.png' % (self.icon), scale=Icon_Size)
+            self.imagePixmap = resource.get_pixmap('player', '%s.png' % (self.icon), scale=ICON_SIZE)
+            self.imageHoverPixmap = resource.get_pixmap('player', '%s_hover.png' % (self.icon), scale=ICON_SIZE)
+            self.imageClickedPixmap = resource.get_pixmap('player', '%s_clicked.png' % (self.icon), scale=ICON_SIZE)
             self.setPixmap(self.imagePixmap)
 
         self.textStr = text
@@ -837,6 +830,11 @@ class PlayThread(QThread):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # panel = Test()
-    panel = Panel()
+    panel = Player()
+    panel.load_capture(TestMov("test.mov"))
+    # panel.load_capture(TestMov("test.mp4"))
+    # panel.load_capture(TestMov("test2.mp4"))
+    # panel.load_capture(TestMov("test1080.mov"))
+    # panel.load_capture(TestMov("out.mov"))
     panel.show()
     app.exec_()

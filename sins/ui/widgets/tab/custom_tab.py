@@ -7,6 +7,7 @@ from sins.module.sqt import *
 from sins.utils.res import resource
 from sins.utils.surl.surl import SURL
 from sins.utils.color import get_lum, other_to_rgb
+from sins.ui.utils import get_text_wh
 
 
 class CustomTabButton(QLabel):
@@ -48,15 +49,13 @@ class CustomTabButton(QLabel):
         self.setFixedHeight(self.fixheight)
         self.setFont(QFont("Arial", 8))
         text = str(self.labeltext)
-        fm = QFontMetrics(self.font())
-        textWidth = fm.boundingRect(self.labeltext).width()
-        textHeight = fm.boundingRect(self.labeltext).height()
-        self.textPos = QPoint(self.marginSize, (self.height() - textHeight) / 2.0)
+        text_width, text_height = get_text_wh(text, self.font())
+        self.textPos = QPoint(self.marginSize, (self.height() - text_height) / 2.0)
 
-        width = textWidth
-        width = textWidth + self.marginSize * 2
+        width = text_width
+        width = text_width + self.marginSize * 2
         if text == "":
-            textWidth = 0
+            text_width = 0
             width = 10
         if self.icon is not None:
             iconMargin = 2
@@ -67,7 +66,7 @@ class CustomTabButton(QLabel):
             width = width + 10
             self.pulldownPos = QPoint(width - self.marginSize, (self.height() - self.pulldownSize) / 2.0)
         self.setFixedWidth(width + 10)
-        self.textRect = QRect(self.textPos.x(), self.textPos.y(), textWidth + 10, textHeight)
+        self.textRect = QRect(self.textPos.x(), self.textPos.y(), text_width + 10, text_height)
 
         self.set_selected(False)
         self.set_style()

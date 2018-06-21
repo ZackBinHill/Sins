@@ -6,6 +6,7 @@ import os
 import sys
 from sins.module.sqt import *
 from sins.utils.const import declare_constants
+from sins.utils.log import get_logger
 useRes = False
 try:
     import respy1
@@ -13,6 +14,8 @@ try:
 except ImportError:
     pass
 
+
+logger = get_logger(__name__)
 
 Res_Folder = '/'.join(__file__.replace('\\', '/').split('/')[:-3]) + '/resource'
 
@@ -134,6 +137,7 @@ def get_pixmap(*args, **kwargs):
     else:
         img = QImage(path)
         if img.width() == 0:
+            logger.warning('error image: "{}"'.format(path))
             img = QImage(getattr(error_pic, error))
         if scale:
             if aspect == 'keep':

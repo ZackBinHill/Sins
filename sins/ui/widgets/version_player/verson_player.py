@@ -6,11 +6,7 @@ import os
 import sys
 import time
 from sins.module.sqt import *
-from player import Panel
-
-
-ThisFolder = os.path.dirname(__file__)
-IconFolder = "%s/icons" % ThisFolder
+from sins.ui.widgets.version_player.player import Player
 
 
 class VersonPlayer(QWidget):
@@ -20,7 +16,7 @@ class VersonPlayer(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.player = Panel()
+        self.player = Player()
         self.versonList = QTreeWidget()
 
         self.splitter = QSplitter()
@@ -41,6 +37,6 @@ class VersonPlayer(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    panel = VersonPlayer()
-    panel.show()
+    w = VersonPlayer()
+    w.show()
     app.exec_()

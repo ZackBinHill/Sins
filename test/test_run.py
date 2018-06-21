@@ -12,7 +12,7 @@ from sins.utils.encrypt import do_hash
 from test_person import gen_one_gender_word
 
 # TEST_DATA_FOLDER = os.path.join(os.path.dirname(__file__), 'test_data')
-TEST_DATA_FOLDER = os.path.abspath('../../../test/test_data')
+TEST_DATA_FOLDER = os.path.abspath('./test_data')
 
 
 def get_random_time(t1=(2010,1,1,0,0,0,0,0,0), t2=(2018,12,31,23,59,59,0,0,0)):
@@ -120,9 +120,9 @@ def test_project():
 def test_add_attachment_to_project():
     print '# ------------test add attachments to project------------ #'
     for test_project in Project.select():
-        thumbnail_file = os.path.join(TEST_DATA_FOLDER, 'project', '%s.jpg' % test_project.code)
+        thumbnail_file = os.path.join(TEST_DATA_FOLDER, 'project', '%s.png' % test_project.code)
         if not os.path.exists(thumbnail_file):
-            thumbnail_file = os.path.join(TEST_DATA_FOLDER, 'project', '%s.png' % test_project.code)
+            thumbnail_file = os.path.join(TEST_DATA_FOLDER, 'project', '%s.jpg' % test_project.code)
         if os.path.exists(thumbnail_file):
             test_project.upload_file(thumbnail_file, description='test project thumbnail')
 
@@ -488,25 +488,25 @@ def test_add_version_uploaded_movie():
 if __name__ == '__main__':
     print TEST_DATA_FOLDER
 
-    drop_and_create_table()
-
-    create_default()
-
-    test_person()
-    test_project()
-    test_add_attachment_to_project()
-    test_add_person_to_project()
-    test_group()
-    test_add_person_to_group()
-    test_tag()
-    test_seq_assettype()
-    test_shot()
-    test_asset()
-    test_shot_asset_relationship()
-    test_task()
-    test_timelog()
-    test_version()
-    test_add_version_uploaded_movie()
+    # drop_and_create_table()
+    #
+    # create_default()
+    #
+    # test_person()
+    # test_project()
+    # test_add_attachment_to_project()
+    # test_add_person_to_project()
+    # test_group()
+    # test_add_person_to_group()
+    # test_tag()
+    # test_seq_assettype()
+    # test_shot()
+    # test_asset()
+    # test_shot_asset_relationship()
+    # test_task()
+    # test_timelog()
+    # test_version()
+    # test_add_version_uploaded_movie()
 
     database.close()
     print 'test finish, close connection'

@@ -9,20 +9,21 @@ from sins.module.sqt import *
 from sins.ui.widgets.thumbnail_label import ThumbnailLabel
 from sins.ui.widgets.tab.property_widget import PropertyWidget
 from sins.ui.widgets.flow_layout import FlowLayout
+from sins.ui.utils import get_text_wh
 from sins.test.test_res import TestMov
 from sins.utils.res import resource
 from sins.utils.python import get_name_data_from_class_or_instance
 from sins.utils.log import get_logger, log_cost_time
 from sins.db.models import *
+from sins.db.permission import get_permission_projects
 
 
 logger = get_logger(__name__)
 
-ThisFolder = os.path.dirname(__file__)
-
 MEDIA_SIZE = [240, 165]
 PLAYBUTTON_SIZE = 30
 MEDIA_FONT_SIZE = 9
+VERSION_NAME_MAX_LENGTH = 200
 
 
 class MediaMainWindow(PropertyWidget):
@@ -36,8 +37,10 @@ class MediaMainWindow(PropertyWidget):
 
         self.init_ui()
 
+        self.entityTree.itemSelectionChanged.connect(self.entity_select_changed)
+
     def init_ui(self):
-        self.filterTree = FilterTree()
+        self.entityTree = EntityTree()
         self.mediaGridWidget = MediaGridWidget()
         self.mediaArea = QScrollArea()
         self.mediaArea.setWidget(self.mediaGridWidget)
@@ -46,7 +49,7 @@ class MediaMainWindow(PropertyWidget):
         self.splitter = QSplitter()
         self.splitter.setHandleWidth(5)
         self.splitter.setOrientation(Qt.Horizontal)
-        self.splitter.addWidget(self.filterTree)
+        self.splitter.addWidget(self.entityTree)
         self.splitter.addWidget(self.mediaArea)
         self.splitter.setStretchFactor(0, 1)
         self.splitter.setStretchFactor(1, 3)
@@ -54,8 +57,6 @@ class MediaMainWindow(PropertyWidget):
         # self.splitter.setOpaqueResize(False)
 
         self.masterLayout = QHBoxLayout()
-        # self.masterLayout.addWidget(self.filterTree, 1)
-        # self.masterLayout.addWidget(self.mediaArea, 3)
         self.masterLayout.addWidget(self.splitter)
         self.setLayout(self.masterLayout)
         self.masterLayout.setContentsMargins(0, 0, 0, 0)
@@ -71,31 +72,60 @@ class MediaMainWindow(PropertyWidget):
             logger.debug((self.__class__.__name__, kwargs))
             if 'personId' in kwargs and 'showList' not in kwargs:
                 self.showList = []
-                for project in Person.get(id=kwargs['personId']).projects:
-                    self.showList.append(project.id)
-            self.filterTree.set_show_list(self.showList)
+                projects = get_permission_projects(Person.get(id=kwargs['personId']))
+                prefetch(projects, Sequence, AssetType)
+                for project in projects:
+                    self.showList.append(project)
+            self.entityTree.set_show_list(self.showList)
 
     @log_cost_time
     def update_data(self):
         logger.debug((self.__class__.__name__))
-        self.filterTree.load_data()
+        self.entityTree.load_data()
+
+    def entity_select_changed(self):
+        selected_items = self.entityTree.selectedItems()
+        if len(selected_items) > 0:
+            selected_item = selected_items[0]
+            entity = selected_item.entity
+            versions = entity.versions
+            if selected_item.sub_type == 'Shot':
+                versions = versions.where(Version.shot.is_null(False))
+            elif selected_item.sub_type == 'Asset':
+                versions = versions.where(Version.asset.is_null(False))
+            print selected_item.type, selected_item.id, selected_item.sub_id
+            print versions, versions.count()
+            versions = versions.where(Version.uploaded_movie.is_null(False))
+            versions = versions.limit(5)
+
+            self.mediaGridWidget.clear_versions()
+            self.mediaGridWidget.load_version(versions)
+            self.mediaGridWidget.load_prev()
 
 
-class FilterTreeItem(QTreeWidgetItem):
-    def __init__(self, name=None, type=None, id=None, subtype=None, subId=None, parent=None):
-        super(FilterTreeItem, self).__init__(parent)
+class EntityTreeItem(QTreeWidgetItem):
+    def __init__(self,
+                 name=None,
+                 entity=None,
+                 type=None,
+                 id=None,
+                 sub_type=None,
+                 sub_id=None,
+                 parent=None):
+        super(EntityTreeItem, self).__init__(parent)
 
         self.name = name
+        self.entity = entity
         self.type = type
         self.id = id
-        self.subtype = subtype
-        self.subId = subId
+        self.sub_type = sub_type
+        self.sub_id = sub_id
 
         self.setText(0, self.name)
         self.setToolTip(0, "type: %s\nid: %s" % (self.type, self.id))
         icon = type
-        if subtype is not None:
-            icon = subtype
+        if sub_type is not None:
+            icon = sub_type
         if icon is not None and hasattr(resource.icon, icon + '_B'):
             self.setIcon(0, resource.get_qicon(getattr(resource.icon, icon + '_B')))
         self.setSizeHint(0, QSize(100, 30))
@@ -111,9 +141,9 @@ class FilterTreeItem(QTreeWidgetItem):
             self.removeChild(self.child(0))
 
 
-class FilterTree(QTreeWidget):
+class EntityTree(QTreeWidget):
     def __init__(self):
-        super(FilterTree, self).__init__()
+        super(EntityTree, self).__init__()
 
         self.showList = []
 
@@ -133,58 +163,60 @@ class FilterTree(QTreeWidget):
         self.load_shows()
 
     def load_recent(self):
-        recentsItem = FilterTreeItem("Recent")
+        recentsItem = EntityTreeItem("Recent")
         self.addTopLevelItem(recentsItem)
         for i in range(5):
-            recentItem = FilterTreeItem("Recent%s" % i, type="Shot", id=i + 1)
+            recentItem = EntityTreeItem("Recent%s" % i, type="Shot", id=i + 1)
             recentsItem.addChild(recentItem)
 
     def load_shows(self):
-        for showid in self.showList:
-            project = Project.get(id=showid)
-            showItem = FilterTreeItem(project.code, type="Project", id=showid)
+        for show in self.showList:
+            if isinstance(show, int):
+                project = Project.get(id=show)
+            else:
+                project = show
+            showItem = EntityTreeItem(project.code, entity=project, type="Project", id=project.id)
             self.addTopLevelItem(showItem)
             if len(self.showList) <= 1:
                 showItem.setExpanded(True)
-            assetsItem = FilterTreeItem("Assets", type="Project", id=showid, subtype="Asset")
-            if project.assettypes.count() != 0:
+            assetsItem = EntityTreeItem("Assets", entity=project, type="Project", id=project.id, sub_type="Asset")
+            asset_types = project.assettypes
+            asset_types_count = len(asset_types) if isinstance(asset_types, list) else asset_types.count()
+            if asset_types_count != 0:
                 assetsItem.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
             showItem.addChild(assetsItem)
 
-            shotsItem = FilterTreeItem("Shots", type="Project", id=showid, subtype="Shot")
-            if project.sequences.count() != 0:
+            shotsItem = EntityTreeItem("Shots", entity=project, type="Project", id=project.id, sub_type="Shot")
+            sequences = project.sequences
+            sequences_count = len(sequences) if isinstance(sequences, list) else sequences.count()
+            if sequences_count != 0:
                 shotsItem.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
             showItem.addChild(shotsItem)
 
     @log_cost_time
     def item_expanded(self, item):
-        # print item.name, item.type, item.id, item.subtype
-        logger.debug((item.name, item.type, item.id, item.subtype))
+        # print item.name, item.type, item.id, item.sub_type
+        logger.debug((item.name, item.type, item.id, item.sub_type))
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        if item.type == 'Project' and item.subtype is not None:
+        if item.type == 'Project' and item.sub_type is not None:
             item.clear_children()
             children = None
-            if item.subtype == 'Asset':
+            if item.sub_type == 'Asset':
                 children = AssetType.select().join(Project).where(Project.id == item.id)
-            elif item.subtype == 'Shot':
+            elif item.sub_type == 'Shot':
                 children = Sequence.select().join(Project).where(Project.id == item.id)
             for child in children:
                 module_name, class_name = get_name_data_from_class_or_instance(child)
-                childitem = FilterTreeItem(child.name, type=class_name, id=child.id)
+                childitem = EntityTreeItem(child.name, entity=child, type=class_name, id=child.id)
                 childitem.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
                 item.addChild(childitem)
                 QCoreApplication.processEvents()
-        if item.type == 'Sequence':
+
+        if item.type in ['AssetType', 'Sequence']:
             item.clear_children()
-            for child in Shot.select().join(Sequence).where(Sequence.id == item.id):
-                childitem = FilterTreeItem(child.name, type='Shot', id=child.id)
-                item.addChild(childitem)
-                QCoreApplication.processEvents()
-        if item.type == 'AssetType':
-            item.clear_children()
-            for child in Asset.select().join(AssetType).where(AssetType.id == item.id):
-                childitem = FilterTreeItem(child.name, type='Asset', id=child.id)
+            for child in item.entity.children:
+                childitem = EntityTreeItem(child.name, entity=child, type=child.__class__.__name__, id=child.id)
                 item.addChild(childitem)
                 QCoreApplication.processEvents()
 
@@ -199,9 +231,6 @@ class MediaGridWidget(QWidget):
         self.medias = []
 
         self.init_ui()
-        self.load_version()
-        self.load_prev()
-
 
     def init_ui(self):
         self.masterLayout = QVBoxLayout()
@@ -216,16 +245,24 @@ class MediaGridWidget(QWidget):
         self.masterLayout.addStretch()
         self.setLayout(self.masterLayout)
 
+    def clear_versions(self):
+        self.clear_layout(self.gridLayout)
 
-    def load_version(self, project=None, filter=None):
-        num = 1
-        for i in range(num):
-            row = i / 5
-            column = i % 5
-            mediaWidget = MediaWidget()
+    def clear_layout(self, layout):
+        if layout != None:
+            while layout.count():
+                child = layout.takeAt(0)
+                if child.widget() is not None:
+                    child.widget().deleteLater()
+                elif child.layout() is not None:
+                    self.clear_layout(child.layout())
+
+    def load_version(self, versions):
+        for v in versions:
+            mediaWidget = MediaWidget(verson=v)
             self.medias.append(mediaWidget)
-            # self.gridLayout.addWidget(mediaWidget, row, column)
             self.gridLayout.addWidget(mediaWidget)
+            QCoreApplication.processEvents()
 
     def load_prev(self):
         # self.refreshPrevThread = RefreshPrevThread(len(self.medias))
@@ -235,21 +272,28 @@ class MediaGridWidget(QWidget):
         # for i in self.medias:
         #     i.load_info(0, 0)
 
-
     def refresh_preview(self, i):
         mediaWidget = self.medias[i]
-        mediaWidget.load_info(0, 0)
+        mediaWidget.load_info()
 
 
 class VersionNameWidget(QLabel):
-    def __init__(self):
+    def __init__(self, version_name=''):
         super(VersionNameWidget, self).__init__()
 
         self.setObjectName('VersionNameWidget')
 
         self.playButton = PlayButton(self)
-        self.versonLabel = QLabel("test_0920_cmp_comp_v001", self)
-        self.versonLabel.setFont(QFont("Arial", MEDIA_FONT_SIZE))
+
+        font = QFont("Arial", MEDIA_FONT_SIZE)
+        name_width, _ = get_text_wh(version_name, font)
+        if name_width > VERSION_NAME_MAX_LENGTH:
+            temp_name1 = version_name[:10]
+            temp_name2 = version_name[-10:]
+            version_name = temp_name1 + '...' + temp_name2
+
+        self.versonLabel = QLabel(version_name, self)
+        self.versonLabel.setFont(font)
         self.versonLabel.setFixedWidth(MEDIA_SIZE[0] - self.playButton.width())
         self.versonLabel.setAlignment(Qt.AlignCenter)
 
@@ -264,27 +308,28 @@ class VersionNameWidget(QLabel):
 
         self.setFixedSize(MEDIA_SIZE[0] + 3, self.playButton.width() + 3)
 
-        
 
 class MediaWidget(QWidget):
-    def __init__(self):
+    def __init__(self, verson=None):
         super(MediaWidget, self).__init__()
 
         self.setObjectName("MediaWidget")
-        self.init_ui()
 
-        self.shotId = None
-        self.versonId = None
-        self.versonName = None
+        self.verson = verson
+        self.versonName = verson.name if verson is not None else ''
         self.versonPreviewFile = None
         self.cap = None
+
+        self.init_ui()
 
         self.create_signal()
 
     def init_ui(self):
 
-        self.previewLabel = ThumbnailLabel(parent=self, dynamic=True, background='rgb(20, 35, 40)')
-        self.versionNameWidget = VersionNameWidget()
+        self.previewLabel = ThumbnailLabel(parent=self,
+                                           dynamic=True,
+                                           background='rgb(20, 35, 40)')
+        self.versionNameWidget = VersionNameWidget(self.versonName)
 
         self.masterLayout = QVBoxLayout()
         self.masterLayout.setSpacing(0)
@@ -303,14 +348,17 @@ class MediaWidget(QWidget):
         # self.previewLabel.labelclicked.connect(self.open_shot_player)
         self.versionNameWidget.playButton.labelclicked.connect(self.open_shot_player)
 
-    def load_info(self, shotId, versonId):
-        self.shotId = shotId
-        self.versonId = versonId
-        # self.versonPreviewFile = TestMov("test3.mov")
-        # self.versonPreviewFile = TestMov("test1080.mov")
-        self.versonPreviewFile = TestMov("test.mp4")
-        # self.versonPreviewFile = ""
-        self.create_preview()
+    def load_info(self):
+        if self.verson is not None:
+            uploaded_movie = self.verson.uploaded_movie
+            if uploaded_movie is not None:
+                if os.path.exists(uploaded_movie.host_path):
+                    self.versonPreviewFile = uploaded_movie.host_path
+                    self.create_preview()
+                else:
+                    logger.warning('version uploaded_movie file not exist')
+            else:
+                logger.debug('version no uploaded_movie')
 
     def create_preview(self):
         # pass
@@ -371,7 +419,7 @@ class RefreshPrevThread1(QThread):
 
     def run(self):
         for i in self.medias:
-            i.load_info(0, 0)
+            i.load_info()
 
 
 class TestWidget(QWidget):
@@ -395,7 +443,8 @@ class TestWidget(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     panel = MediaMainWindow()
-    panel.set_core_property(showList=[1, 3])
+    # panel.set_core_property(showList=[1, 3])
+    panel.set_core_property(personId=1)
     panel.update_data()
     # panel = TestWidget()
     # panel = VersionNameWidget()

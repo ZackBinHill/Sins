@@ -194,7 +194,7 @@ class Entity(ModelBase):
         return result
 
 
-class Department(ModelBase):
+class Department(Entity):
     code = CharField(column_name='code', null=False)
     full_name = CharField(column_name='full_name', null=False)
     description = TextField(column_name='description', null=True)
@@ -210,7 +210,7 @@ class Department(ModelBase):
         return {'objects': self.persons, 'object_label_attr': 'full_name'}
 
 
-class PermissionGroup(ModelBase):
+class PermissionGroup(Entity):
     code = CharField(column_name='code', null=False)
     description = TextField(column_name='description', null=True)
 
@@ -385,7 +385,7 @@ NoteVersionDeferred = DeferredThroughModel()
 GroupPersonDeferred = DeferredThroughModel()
 
 
-class Group(ModelBase):
+class Group(Entity):
     code = CharField(column_name='code', null=False)
     full_name = CharField(column_name='full_name', null=True)
     description = TextField(column_name='description', null=True)
@@ -398,7 +398,7 @@ class Group(ModelBase):
     icon = resource.get_pic('icon', 'Groups.png')
 
 
-class PipelineStep(ModelBase):
+class PipelineStep(Entity):
     name = CharField(column_name='name', null=False)
     full_name = CharField(column_name='full_name', null=True)
     color = BigIntegerField(column_name='color', null=True)
@@ -410,7 +410,7 @@ class PipelineStep(ModelBase):
     icon = resource.get_pic('icon', 'PipelineSteps.png')
 
 
-class Sequence(ModelBase):
+class Sequence(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
     status = CharField(column_name='status', default='wts')
@@ -422,8 +422,12 @@ class Sequence(ModelBase):
 
     icon = resource.get_pic('icon', 'Sequences.png')
 
+    @property
+    def children(self):
+        return self.shots
 
-class AssetType(ModelBase):
+
+class AssetType(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
 
@@ -432,8 +436,12 @@ class AssetType(ModelBase):
     class Meta:
         db_table = 'asset_types'
 
+    @property
+    def children(self):
+        return self.assets
 
-class Tag(ModelBase):
+
+class Tag(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
 
@@ -570,7 +578,7 @@ class Task(Entity):
         return None
 
 
-class Timelog(ModelBase):
+class Timelog(Entity):
     description = TextField(column_name='description', null=True)
     duration = TimestampField(column_name='duration', null=True)
 
@@ -583,7 +591,7 @@ class Timelog(ModelBase):
         db_table = 'timelogs'
 
 
-class Playlist(ModelBase):
+class Playlist(Entity):
     name = CharField(column_name='name', null=False)
     date_time = DateTimeField(column_name='date_time', null=True)
     description = TextField(column_name='description', null=True)
@@ -616,6 +624,7 @@ class Version(Entity):
                                  null=True)
     asset = ForeignKeyField(column_name='asset_id', model=Asset, field='id', backref='versions', null=True)
     task = ForeignKeyField(column_name='task_id', model=Task, field='id', backref='versions')
+    # step = ForeignKeyField(column_name='step_id', model=PipelineStep, field='id', backref='versions')
 
     playlists = ManyToManyField(Playlist, backref='versions', through_model=VersionPlaylistDeferred)
     attachments = ManyToManyField(File, backref='versions', through_model=FileVersionDeferred)
@@ -631,6 +640,13 @@ class Version(Entity):
     @property
     def thumbnail(self):
         return self.uploaded_movie
+
+    @property
+    def entity(self):
+        if self.shot is not None:
+            return self.shot
+        else:
+            return self.asset
 
 
 # relationship

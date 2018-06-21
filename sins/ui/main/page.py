@@ -7,10 +7,9 @@ from sins.module.sqt import *
 from sins.ui.main.artist.artist import ArtistMainWindow
 from sins.ui.main.project.project import ProjectMainWindow
 from sins.ui.main.media.media import MediaMainWindow
-from sins.ui.widgets.tab.custom_tab import CustomTabWindow, MainTabButton, CustomTabButton
+from sins.ui.widgets.tab.custom_tab import CustomTabWindow, MainTabButton
 from sins.ui.widgets.action import SeparatorAction
-from sins.ui.widgets.round_label import RoundLabel
-from sins.utils.res import resource
+from sins.ui.widgets.label import RoundLabel, RoundRectLabel
 from sins.db.models import *
 from sins.db.permission import get_permission_projects
 
@@ -158,7 +157,9 @@ class PageWindow(CustomTabWindow):
 
         projectMenu = ProjectMenu()
         projectList = []
-        for project in get_permission_projects(current_user_object):
+        projects = get_permission_projects(current_user_object)
+        prefetch(projects, File)
+        for project in projects:
             if project.thumbnail is not None:
                 thumbnail_path = project.thumbnail.host_path
             else:
@@ -203,7 +204,8 @@ class ProjectListCellWidget(QWidget):
 
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignCenter)
-        thumnLabel = QLabel()
+        # thumnLabel = QLabel()
+        thumnLabel = RoundRectLabel(round=5)
         thumnLabel.setPixmap(resource.get_pixmap(projectDict["thumb"],
                                                  scale=[100, 56],
                                                  aspect='expand',
