@@ -6,7 +6,7 @@ from BQt import QtCore
 from BQt import QtWidgets
 # from PyQt4 import QtOpenGL
 
-from node import VersionItem
+from node import VersionItem, SPECIAL_COLOR
 from edge import Edge
 from knob import Knob
 from bfx.ui.util import get_pipeline_color
@@ -14,6 +14,22 @@ from bfx.ui.const import PIPELINE_COLOR
 
 
 ALTERNATE_MODE_KEY = QtCore.Qt.Key_Alt
+
+
+class ColorLabel(QtWidgets.QLabel):
+    def __init__(self, color, *args, **kwargs):
+        super(ColorLabel, self).__init__(*args, **kwargs)
+        self.setFixedSize(20, 20)
+        if isinstance(color, list):
+            if len(color) == 2 and isinstance(color[0], list):
+                self.setStyleSheet("""
+                    background:qlineargradient(spread:pad, 
+                    x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 rgb({}, {}, {}), 
+                    stop:1 rgb({}, {}, {}))
+                """.format(color[0][0], color[0][1], color[0][2], color[1][0], color[1][1], color[1][2]))
+            elif len(color) == 3:
+                self.setStyleSheet('background:rgb({}, {}, {}, 200)'.format(color[0], color[1], color[2]))
 
 
 class ColorTable(QtWidgets.QWidget):
@@ -24,19 +40,22 @@ class ColorTable(QtWidgets.QWidget):
         self.masterLayout = QtWidgets.QVBoxLayout()
 
         self.showButton = QtWidgets.QPushButton('hide sheet', self)
-        self.showButton.setStyleSheet("color:gray")
+        self.showButton.setStyleSheet("color:gray;text-align:right;border:none")
 
         self.colorLayout = QtWidgets.QFormLayout()
         keys = list(PIPELINE_COLOR._fields)
         keys.remove("other")
         keys.sort()
-        keys.append("other")
+        # keys.append("other")
         for step in keys:
             color = get_pipeline_color(step)
-            colorLabel = QtWidgets.QLabel()
-            colorLabel.setFixedSize(QtCore.QSize(20, 20))
-            colorLabel.setStyleSheet('background:rgb({}, {}, {})'.format(color[0], color[1], color[2]))
-            self.colorLayout.addRow(step + '  ', colorLabel)
+            color_label = ColorLabel(color)
+            self.colorLayout.addRow(step + '  ', color_label)
+        for key in SPECIAL_COLOR:
+            color = SPECIAL_COLOR[key]
+            color_label = ColorLabel(color)
+            self.colorLayout.addRow(key + '  ', color_label)
+        self.colorLayout.addRow('other' + '  ', ColorLabel(get_pipeline_color('other')))
 
         self.colorGroup = QtWidgets.QGroupBox()
         self.colorGroup.setLayout(self.colorLayout)
@@ -71,7 +90,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
     def __init__(self, *args, **kwargs):
         super(GraphicsView, self).__init__(*args, **kwargs)
 
-        self.fillColor = QtGui.QColor(50, 50, 50)
+        self.fillColor = QtGui.QColor(38, 38, 38)
         self.lineColor = QtGui.QColor(55, 55, 55)
 
         self.xStep = 20
@@ -91,6 +110,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.setViewportUpdateMode(self.SmartViewportUpdate)
         # self.glWidget = QtOpenGL.QGLWidget(QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers))
         # self.glWidget.updateGL()
         # self.setViewport(self.glWidget)
@@ -123,8 +143,17 @@ class GraphicsView(QtWidgets.QGraphicsView):
                                                 h))
 
         show_detail = True if self.current_zoom >= 0.5 else False
+        point1 = self.mapToScene(QtCore.QPoint(0, 0))
+        point2 = self.mapToScene(QtCore.QPoint(self.viewport().width(), self.viewport().height()))
+        rect = QtCore.QRectF(point1, point2)
         for version_node in self.nodes():
-            version_node.version_widget.setVisible(show_detail)
+            if hasattr(version_node, 'version_widget'):
+                version_node.version_widget.setVisible(show_detail)
+            else:
+                if rect.contains(version_node.pos()) and show_detail:
+                    # version_node.start_show_version_widget()
+                    version_node.show_version_widget()
+                    QtCore.QCoreApplication.processEvents()
             for knob in version_node.knobs():
                 knob.setVisible(show_detail)
             for tag in version_node.tags():
@@ -198,6 +227,16 @@ class GraphicsView(QtWidgets.QGraphicsView):
                                       self.prev_center.y() - mouse_move.y() / self.current_zoom)
             self.centerOn(newCenter)
 
+            show_detail = True if self.current_zoom >= 0.5 else False
+            if show_detail:
+                point1 = self.mapToScene(QtCore.QPoint(0, 0))
+                point2 = self.mapToScene(QtCore.QPoint(self.viewport().width(), self.viewport().height()))
+                rect = QtCore.QRectF(point1, point2)
+                for version_node in self.nodes():
+                    if rect.contains(version_node.pos()) and not hasattr(version_node, 'version_widget'):
+                        version_node.start_show_version_widget()
+                        # print version_node.pos(), point1, point2
+
             return
         super(GraphicsView, self).mouseMoveEvent(event)
 
@@ -232,7 +271,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         painter.drawRect(rect)
         lines = []
-        scale = max(int(1 / self.current_zoom / 5), 1)
+        scale = max(int(1 / self.current_zoom / 2), 1)
         line_w = 200 * scale
         line_h = 80 * scale
 

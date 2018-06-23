@@ -103,9 +103,13 @@ class Knob(QtWidgets.QGraphicsItem):
         bbox = self.boundingRect()
 
         # Draw a filled rectangle.
-        painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
+        # painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
+        pen = QtGui.QPen(QtGui.QColor(200, 200, 250))
+        pen.setWidth(1)
+        painter.setPen(pen)
         painter.setBrush(QtGui.QBrush(self.fillColor))
-        painter.drawRect(bbox)
+        # painter.drawRect(bbox)
+        painter.drawEllipse(bbox)
 
         # Draw a text label next to it. Position depends on the flow.
         if self.flow == FLOW_LEFT_TO_RIGHT:
@@ -176,6 +180,7 @@ class InputKnob(Knob):
         self.name = kwargs.get("name", "input")
         self.displayName = kwargs.get("displayName", self.name)
         self.fillColor = kwargs.get("fillColor", QtGui.QColor(130, 230, 130))
+        self.fillColor = kwargs.get("fillColor", QtGui.QColor(40, 60, 100))
 
     def finalize_edge(self, edge):
         ensure_edge_direction(edge)
@@ -201,6 +206,7 @@ class OutputKnob(Knob):
         self.name = kwargs.get("name", "output")
         self.displayName = kwargs.get("displayName", self.name)
         self.fillColor = kwargs.get("fillColor", QtGui.QColor(230, 130, 130))
+        self.fillColor = kwargs.get("fillColor", QtGui.QColor(50, 100, 80))
         self.flow = kwargs.get("flow", FLOW_RIGHT_TO_LEFT)
 
     def finalize_edge(self, edge):

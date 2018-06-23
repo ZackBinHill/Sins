@@ -90,17 +90,6 @@ class Tag(QtWidgets.QGraphicsItem):
                              self.h)
         return rect
 
-    def highlight(self, toggle):
-        """Toggle the highlight color on/off.
-
-        Store the old color in a new attribute, so it can be restored.
-        """
-        if toggle:
-            self._oldFillColor = self.fillColor
-            self.fillColor = self.highlightColor
-        else:
-            self.fillColor = self._oldFillColor
-
     def paint(self, painter, option, widget):
         """Draw the Tag's shape and label."""
         bbox = self.boundingRect()
@@ -164,13 +153,12 @@ class PixmapTag(QtWidgets.QGraphicsPixmapItem):
         self.setScale(1.0 / self.scale_factor)
 
 
-
-class ColorTag(PixmapTag):
-    def __init__(self):
-        super(ColorTag, self).__init__()
-        self.icon = os.path.join(os.path.dirname(__file__), 'icons', 'color.png')
-        self.set_pixmap()
-        self.auto_hide = False
+# class ColorTag(PixmapTag):
+#     def __init__(self):
+#         super(ColorTag, self).__init__()
+#         self.icon = os.path.join(os.path.dirname(__file__), 'icons', 'color.png')
+#         self.set_pixmap()
+#         self.auto_hide = False
 
 
 class WarningTag(PixmapTag):

@@ -2,84 +2,26 @@
 
 from BQt import QtGui, QtCore, QtWidgets
 from knob import InputKnob, OutputKnob, Knob
-from tag import Tag, PixmapTag, ColorTag, WarningTag
+from tag import Tag, PixmapTag, WarningTag
+from item_widget import VersionItemWidget
 from errors import DuplicateKnobNameError
 from bfx.ui.version_graph.utils import open_version_in_browser, open_version_in_file_explorer
 from bfx.ui.util import get_pipeline_color
+from bfx.util.log import log_time_cost
+from bfx.data.ple.assets import Entity, Asset
+import time
 
 TAG_MARGIN = 3
-
-
-class Label(QtWidgets.QLabel):
-    def __init__(self, *args, **kwargs):
-        super(Label, self).__init__(*args, **kwargs)
-
-    def paintEvent(self, qpaintevent):
-        painter = QtGui.QPainter(self)
-        font = painter.font()
-        fm = QtGui.QFontMetrics(font)
-        w = fm.boundingRect(self.text()).width() + 10
-        h = fm.boundingRect(self.text()).height()
-        painter.setFont(font)
-        # painter.setPen(QtGui.QPen(QtGui.QColor(10, 10, 10)))
-        painter.drawText(0, 0, w, h, 0, self.text())
-        super(Label, self).paintEvent(qpaintevent)
-
-
-class VersionItemWidget(QtWidgets.QWidget):
-
-    def __init__(self, version, **kwargs):
-        super(VersionItemWidget, self).__init__(**kwargs)
-
-        self.version = version
-        self.exporter = version.get_exporter()
-        self.layout1 = QtWidgets.QHBoxLayout()
-        self.version_label = Label()
-        self.version_label.setStyleSheet('font: italic bold 17px Arial')
-        self.color_label = QtWidgets.QLabel()
-        self.step_label = Label()
-        self.step_label.setStyleSheet('font: bold 17px Arial')
-        self.layout1.addWidget(self.version_label)
-        self.layout1.addStretch()
-        self.layout1.addWidget(self.color_label)
-        self.layout1.addWidget(self.step_label)
-        self.form_layout = QtWidgets.QFormLayout()
-        self.masterLayout = QtWidgets.QVBoxLayout()
-        self.masterLayout.addSpacing(5)
-        self.masterLayout.addLayout(self.layout1)
-        self.masterLayout.addStretch()
-        self.masterLayout.addLayout(self.form_layout)
-        self.setLayout(self.masterLayout)
-        self.masterLayout.setAlignment(QtCore.Qt.AlignTop)
-        self.masterLayout.setContentsMargins(10, 0, 0, 5)
-        #
-        self.version_label.setText(self.version.name)
-        self.color_label.setFixedSize(QtCore.QSize(20, 20))
-        self.setToolTip('<font color=white>id: %s</font>' % self.version.id)
-        self.entity = self.exporter.basset_url.entity
-        basset_name = Label('BAsset:')
-        # print self.exporter.basset_url.asset.name
-        basset_label = Label(self.exporter.basset_url.asset.name)
-        entity_name = Label('Entity:')
-        entity_label = Label(self.entity.get_full_name())
-        for label in [basset_name, entity_name, basset_label, entity_label]:
-            label.setStyleSheet('font: 12px Liberation Sans')
-        self.form_layout.addRow(basset_name, basset_label)
-        self.form_layout.addRow(entity_name, entity_label)
-        if self.entity.type == 'step':
-            self.step_label.setText(self.entity.name)
-
-        style = "background: transparent;" \
-                "color: black"
-        self.setStyleSheet(style)
-
-        self.resize(200, 80)
-        # self.backLabel.setFixedSize(self.width(), self.height())
+PADDING_X = 200
+PADDING_Y = 30
+SPECIAL_COLOR = {
+    'cc_bundle': [[200, 80, 80], [115, 115, 255]]
+}
 
 
 class VersionItem(QtWidgets.QGraphicsItem):
 
-    def __init__(self, version, *args, **kwargs):
+    def __init__(self, version, entity, asset, *args, **kwargs):
         super(VersionItem, self).__init__(*args, **kwargs)
 
         self.x = 0
@@ -91,6 +33,8 @@ class VersionItem(QtWidgets.QGraphicsItem):
         self._children = []
 
         self.version = version
+        self.entity = entity
+        self.asset = asset
         self.id = version.id
         self.edges = []
         self.orientation = 0
@@ -98,10 +42,13 @@ class VersionItem(QtWidgets.QGraphicsItem):
         self.margin = 6
         self.roundness = 10
         self.base_color = QtGui.QColor(210, 210, 210)
+        self.base_color = QtGui.QColor(50, 60, 70)
         self.normal_color = self.base_color
         self.highlight_color = QtGui.QColor(250, 250, 150)
+        self.highlight_color = QtGui.QColor(230, 230, 100)
         self.fill_color = self.normal_color
         self.border_color = QtGui.QColor(150, 150, 210)
+        self.border_color = QtGui.QColor(180, 180, 250)
 
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
@@ -118,9 +65,10 @@ class VersionItem(QtWidgets.QGraphicsItem):
         self.children_populated = False
         self.parent_populated = False
 
-        latest_version = self.version.asset.get_latest_version(status='PUB')
+    def check_new_version(self):
+        latest_version = self.asset.get_latest_version(status='PUB')
         if int(latest_version.id) != int(self.version.id):
-            self.add_tag(WarningTag(warning='New version found!\n{0}'.format(latest_version.name)), position=0.375)
+            self.add_tag(WarningTag(warning='New version found!\n{0}'.format(latest_version.name)), position=0.875)
 
     def set_orientation(self, orientation):
         self.orientation = orientation
@@ -131,7 +79,7 @@ class VersionItem(QtWidgets.QGraphicsItem):
 
     def set_color(self, step):
         color = get_pipeline_color(step)
-        self.normal_color = QtGui.QColor(color[0], color[1], color[2])
+        self.normal_color = QtGui.QColor(color[0], color[1], color[2], 200)
         self.fill_color = self.normal_color
 
     @property
@@ -203,89 +151,150 @@ class VersionItem(QtWidgets.QGraphicsItem):
             self.connected_destinations[node.id] = node
             node.connected_sources[self.id] = self
 
+    @log_time_cost
     def populate_children(self, populate_layer=1, reset_pos=False):
         if not self.children_populated:
             if populate_layer > 0:
-                populate_layer = populate_layer - 1
+                self.populate_layer = populate_layer - 1
+                self.reset_pos = reset_pos
 
                 if not self.version:
-                    return 0
+                    return 0, 0
                 if not self.dependent_versions:
-                    return 0
+                    return 0, 0
 
                 self.scene().max_y_depth += self.dependent_versions_count
                 self.scene().depth += 1
 
-                padding_x = 200
-                padding_y = 30
-
                 # top, right, bottom, left = [self.y, 10, 10, 10 + self.x + self.w]
-                if self.orientation == 0:
-                    x = padding_x + self.pos().x() + self.w + 100 * self.dependent_versions_count
-                    y = self.pos().y()
-                else:
-                    x = self.pos().x()
-                    y = padding_x + self.pos().y() + self.h + 100 * self.dependent_versions_count
-
-                all_count = self.dependent_versions_count
-
-                for v in self.dependent_versions:
-                    version_exist = False
-                    for i in self.scene().items():
-                        if isinstance(i, VersionItem):
-                            if i.version == v:
-                                dependent_item = i
-                                version_exist = True
-                                break
-                    if not version_exist or not self.scene().combine_version:
-                        if v.id not in self.connected_sources:
-                            dependent_item = VersionItem.create_item(v)
-                            self.scene().addItem(dependent_item)
-                            dependent_item.set_orientation(self.orientation)
-                            dependent_item.parent = self
-                            dependent_item.setPos(x, y)
-                            dependent_item.show_version_widget()
-                        else:
-                            dependent_item = self.connected_sources[v.id]
-                    self.connect_source(dependent_item)
-
-                    # y += padding_y + dependent_item.h
-
-                    children_count = dependent_item.populate_children(populate_layer, reset_pos)
-                    all_count += children_count
+                if self.orientation in [0, 2]:
                     if self.orientation == 0:
-                        y += (padding_y + dependent_item.h) * max(children_count, 1)
+                        self.temp_x = self.pos().x() + PADDING_X + self.w + 50 * self.dependent_versions_count
                     else:
-                        x += (padding_y + dependent_item.w) * max(children_count, 1)
+                        self.temp_x = self.pos().x() - PADDING_X - 50 * self.dependent_versions_count
+                    self.temp_y = self.pos().y()
+                elif self.orientation in [1, 3]:
+                    self.temp_x = self.pos().x()
+                    if self.orientation == 1:
+                        self.temp_y = self.pos().y() + PADDING_X + self.h + 50 * self.dependent_versions_count
+                    else:
+                        self.temp_y = self.pos().y() - PADDING_X - 50 * self.dependent_versions_count
 
-                    QtCore.QCoreApplication.processEvents()
+                self.all_count = self.dependent_versions_count
+                # self.max_y = self.pos().y()
 
-                if reset_pos:
-                    if self.orientation == 0:
+                for index, v in enumerate(self.dependent_versions):
+                    # version_exist = False
+                    # for i in self.scene().items():
+                    #     if isinstance(i, VersionItem):
+                    #         if i.version == v:
+                    #             dependent_item = i
+                    #             version_exist = True
+                    #             break
+                    # if not version_exist or not self.scene().combine_version:
+                    #     if v.id not in self.connected_sources:
+                    #         t = time.time()
+                    #         dependent_item = VersionItem.create_item(v)
+                    #         self.scene().addItem(dependent_item)
+                    #         dependent_item.set_orientation(self.orientation)
+                    #         dependent_item.parent = self
+                    #         dependent_item.setPos(x, y)
+                    #         dependent_item.show_version_widget()
+                    #         print time.time() - t, v.id
+                    #     else:
+                    #         dependent_item = self.connected_sources[v.id]
+                    # self.connect_source(dependent_item)
+                    #
+                    # # self.temp_y += PADDING_Y + dependent_item.h
+                    #
+                    # children_count = dependent_item.populate_children(populate_layer, reset_pos)
+                    # self.all_count += children_count
+                    # if self.orientation == 0:
+                    #     self.temp_y += (PADDING_Y + dependent_item.h) * max(children_count, 1)
+                    # else:
+                    #     self.temp_x += (PADDING_Y + dependent_item.w) * max(children_count, 1)
+                    #
+                    # QtCore.QCoreApplication.processEvents()
+                    self.populate_child(index)
+
+                # QtCore.QCoreApplication.postEvent(self.scene().parent(), PopulateEvent(0, self))
+                # self.scene().parent().itemPopulate.emit(0, self)
+
+                if self.reset_pos:
+                    if self.orientation in [0, 2]:
                         self.setPos(self.pos().x(),
-                                    self.pos().y() + (y - padding_y - self.pos().y()) / 2 -self.h / 2)
-                    else:
-                        self.setPos(self.pos().x() + (x - padding_y - self.pos().x()) / 2 -self.w / 2,
+                                    self.pos().y() + (self.temp_y - PADDING_Y - self.pos().y()) / 2 -self.h / 2)
+                    elif self.orientation in [1, 3]:
+                        self.setPos(self.pos().x() + (self.temp_x - PADDING_Y - self.pos().x()) / 2 -self.w / 2,
                                     self.pos().y())
                     self.update_edge(self)
 
                 self.children_populated = True
-                return all_count
+                return self.all_count, 0
             else:
-                return 0
-        return 0
+                return 0, 0
+        return 0, 0
+
+    def populate_child(self, index):
+        t0 = time.time()
+        v = self.dependent_versions[index]
+        version_exist = False
+        t1 = time.time()
+        for i in self.scene().items():
+            if isinstance(i, VersionItem):
+                if i.version == v:
+                    dependent_item = i
+                    version_exist = True
+                    break
+        # print time.time() - t1
+        if not version_exist or not self.scene().combine_version:
+            if v.id not in self.connected_sources:
+                t1 = time.time()
+                dependent_item = VersionItem.create_item(v)
+                self.scene().addItem(dependent_item)
+                dependent_item.set_orientation(self.orientation)
+                dependent_item.parent = self
+                dependent_item.setPos(self.temp_x, self.temp_y)
+                dependent_item.set_color(dependent_item.entity.name)
+                # dependent_item.show_version_widget()
+                # print time.time() - t1, v.id
+            else:
+                dependent_item = self.connected_sources[v.id]
+        self.connect_source(dependent_item)
+
+        # self.temp_y += PADDING_Y + dependent_item.h
+
+        children_count, max_y = dependent_item.populate_children(self.populate_layer, self.reset_pos)
+        self.all_count += children_count
+        # self.max_y = max(self.max_y, max_y)
+        # if not version_exist:
+        if self.orientation in [0, 2]:
+            self.temp_y += (PADDING_Y + dependent_item.h) * max(children_count, 1)
+            # self.temp_y += (PADDING_Y + dependent_item.h) + self.max_y
+        elif self.orientation in [1, 3]:
+            self.temp_x += (PADDING_Y + dependent_item.w) * max(children_count, 1)
+
+        # print time.time() - t0
+
+        QtCore.QCoreApplication.processEvents()
 
     def populate_parent(self):
         if not self.parent_populated:
-            padding_x = 200
-            padding_y = 30
+            PADDING_X = 200
+            PADDING_Y = 30
 
-            if self.orientation == 0:
-                x = self.pos().x() - padding_x - self.w - 100 * self.destination_versions_count
+            if self.orientation in [0, 2]:
+                if self.orientation == 0:
+                    x = self.pos().x() - PADDING_X - self.w - 50 * self.destination_versions_count
+                else:
+                    x = self.pos().x() + PADDING_X + self.w + 50 * self.destination_versions_count
                 y = self.pos().y()
-            else:
+            elif self.orientation in [1, 3]:
                 x = self.pos().x()
-                y = self.pos().y() - padding_x - self.h - 100 * self.destination_versions_count
+                if self.orientation == 1:
+                    y = self.pos().y() - PADDING_X - self.h - 50 * self.destination_versions_count
+                else:
+                    y = self.pos().y() + PADDING_X + self.h + 50 * self.destination_versions_count
 
             for v in self.destination_versions:
                 version_exist = False
@@ -302,15 +311,16 @@ class VersionItem(QtWidgets.QGraphicsItem):
                     destination_item.set_orientation(self.orientation)
                     self.parent = destination_item
                     destination_item.setPos(x, y)
-                    destination_item.show_version_widget()
+                    destination_item.set_color(destination_item.entity.name)
+                    # destination_item.show_version_widget()
                     # else:
                     #     destination_item = self.connected_destinations[v.id]
                 self.connect_destination(destination_item)
 
-                if self.orientation == 0:
-                    y += (padding_y + destination_item.h)
-                else:
-                    x += (padding_y + destination_item.w)
+                if self.orientation in [0, 2]:
+                    y += (PADDING_Y + destination_item.h)
+                elif self.orientation in [1, 3]:
+                    x += (PADDING_Y + destination_item.w)
 
                 QtCore.QCoreApplication.processEvents()
             self.parent_populated = True
@@ -368,14 +378,22 @@ class VersionItem(QtWidgets.QGraphicsItem):
         y_offset = (bbox.height() - knob.h) / 2
         if isinstance(knob, OutputKnob):
             if self.orientation == 0:
-                knob.setPos(bbox.right() - knob.w + x_offset, y_offset)
-            else:
-                knob.setPos(bbox.width() / 2, bbox.bottom() - x_offset)
+                knob.setPos(bbox.right() - knob.w / 2.0, y_offset)
+            elif self.orientation == 1:
+                knob.setPos(bbox.width() / 2, bbox.bottom() - knob.w / 2.0)
+            elif self.orientation == 2:
+                knob.setPos(bbox.left() - knob.w / 2.0, y_offset)
+            elif self.orientation == 3:
+                knob.setPos(bbox.width() / 2, bbox.top() - knob.w / 2.0)
         elif isinstance(knob, InputKnob):
             if self.orientation == 0:
-                knob.setPos(bbox.left() - x_offset, y_offset)
-            else:
-                knob.setPos(bbox.width() / 2, bbox.top() - x_offset)
+                knob.setPos(bbox.left() - knob.w / 2.0, y_offset)
+            elif self.orientation == 1:
+                knob.setPos(bbox.width() / 2, bbox.top() - knob.w / 2.0)
+            elif self.orientation == 2:
+                knob.setPos(bbox.right() - knob.w + knob.w / 2.0, y_offset)
+            elif self.orientation == 3:
+                knob.setPos(bbox.width() / 2, bbox.bottom() - knob.w / 2.0)
 
     def tags(self, cls=None):
         """Return a list of childItems that are Knob objects.
@@ -416,6 +434,8 @@ class VersionItem(QtWidgets.QGraphicsItem):
             self.fill_color = self.highlight_color
         else:
             self.fill_color = self.normal_color
+        if hasattr(self, 'version_widget'):
+            self.version_widget.set_highlight(value)
 
     def paint(self, painter, option, widget):
         bbox = self.boundingRect()
@@ -437,36 +457,60 @@ class VersionItem(QtWidgets.QGraphicsItem):
 
             painter.setBrush(QtGui.QBrush(self.base_color))
             # painter.setBrush(QtGui.QBrush(self.fill_color))
+            # painter.drawRoundedRect(self.x,
+            #                         self.y,
+            #                         bbox.width(),
+            #                         self.h,
+            #                         self.roundness,
+            #                         self.roundness)
+            #
+            # painter.setBrush(QtGui.QBrush(self.fill_color))
+            # painter.drawRect(self.x,
+            #                  self.y + self.roundness,
+            #                  bbox.width(),
+            #                  self.h - 50 - self.roundness)
+            # painter.drawRoundedRect(self.x,
+            #                         self.y,
+            #                         bbox.width(),
+            #                         self.h - 50,
+            #                         self.roundness,
+            #                         self.roundness)
+
+            painter.setBrush(QtGui.QBrush(self.fill_color))
             painter.drawRoundedRect(self.x,
                                     self.y,
                                     bbox.width(),
                                     self.h,
                                     self.roundness,
                                     self.roundness)
-
-            painter.setBrush(QtGui.QBrush(self.fill_color))
+            painter.setBrush(QtGui.QBrush(self.base_color))
             painter.drawRect(self.x,
-                             self.y + self.roundness,
+                             self.y + 30,
                              bbox.width(),
-                             self.h - 50 - self.roundness)
+                             self.h - 30 - self.roundness)
             painter.drawRoundedRect(self.x,
-                                    self.y,
+                                    self.y + 30,
                                     bbox.width(),
-                                    self.h - 50,
+                                    self.h - 30,
                                     self.roundness,
                                     self.roundness)
 
-    def show_version_widget(self):
-        self.version_widget = VersionItemWidget(self.version)
-        self.set_color(self.version_widget.entity.name)
-        self.version_widget_proxy = self.scene().addWidget(self.version_widget)
-        self.version_widget_proxy.setParentItem(self)
-        self.version_widget_proxy.setPos(0, 0)
-        # print self.version_widget_proxy.pos()
-        # print self.version_widget_proxy.size()
-        # QtWidgets.QGraphicsProxyWidget.setPos()
 
-        self.create_context_menu()
+    def start_show_version_widget(self):
+        # self.scene().parent().showWidgetSignal.emit(self)
+        QtCore.QCoreApplication.postEvent(self.scene().parent(), ShowVersionWidgetEvent(self))
+
+    def show_version_widget(self):
+        # print 'show_version_widget'
+        if not hasattr(self, 'version_widget'):
+            self.version_widget = VersionItemWidget.create_item(self.version, self.entity, self.asset)
+            self.version_widget_proxy = self.scene().addWidget(self.version_widget)
+            self.version_widget_proxy.setParentItem(self)
+            self.version_widget_proxy.setPos(0, 0)
+            # print self.version_widget_proxy.pos()
+            # print self.version_widget_proxy.size()
+            # QtWidgets.QGraphicsProxyWidget.setPos()
+            self.create_context_menu()
 
     def add_edge(self, edge):
         self.edges.append(edge)
@@ -533,36 +577,83 @@ class VersionItem(QtWidgets.QGraphicsItem):
 
     def mouseDoubleClickEvent(self, event):
         super(VersionItem, self).mouseDoubleClickEvent(event)
-        self.scene().parent().itemDoubleClicked.emit(self.version)
+        self.scene().parent().itemDoubleClicked.emit(self)
+
+    # def sceneEvent(self, event):
+    #     return super(VersionItem, self).sceneEvent(event)
 
     @classmethod
     def create_item(cls, version, *args, **kwargs):
-        if version.get_exporter().basset_url.entity.name == 'cmp':
-            item = CmpVersionItem(version, *args, **kwargs)
-        elif version.get_exporter().basset_url.entity.name == 'pla':
-            item = PlaVersionItem(version, *args, **kwargs)
+        t = time.time()
+        # exporter = version.get_exporter()
+        # basset_url = exporter.basset_url
+        # entity = basset_url.entity
+        # asset = basset_url.asset
+
+        # basset_url._get_common_basset_parse_result()
+        # entity = basset_url.result["_common_basset_parse_result"]['entity']
+        # asset = basset_url.result["_common_basset_parse_result"]['asset']
+
+        # entity = Entity.find(basset_url.path)
+
+        asset = version.asset
+        entities = asset.entities
+        try:
+            entity = entities[0]
+        except:
+            exporter = version.get_exporter()
+            basset_url = exporter.basset_url
+            entity = Entity.find(basset_url.path)
+
+        # print 'exporter:', time.time() - t
+        if entity.name == 'cmp':
+            item = CmpVersionItem(version, entity, asset, *args, **kwargs)
+        elif entity.name == 'pla':
+            item = PlaVersionItem(version, entity, asset, *args, **kwargs)
         else:
-            item = VersionItem(version, *args, **kwargs)
+            item = VersionItem(version, entity, asset, *args, **kwargs)
+        # item = VersionItem(version, *args, **kwargs)
         return item
 
 
 class CmpVersionItem(VersionItem):
-    def __init__(self, version, *args, **kwargs):
-        super(CmpVersionItem, self).__init__(version, *args, **kwargs)
+    def __init__(self, version, entity, asset, *args, **kwargs):
+        super(CmpVersionItem, self).__init__(version, entity, asset, *args, **kwargs)
 
 
 class PlaVersionItem(VersionItem):
-    def __init__(self, version, *args, **kwargs):
-        super(PlaVersionItem, self).__init__(version, *args, **kwargs)
+    def __init__(self, version, entity, asset, *args, **kwargs):
+        super(PlaVersionItem, self).__init__(version, entity, asset, *args, **kwargs)
 
-        self.basset_name = self.version.get_exporter().basset_url.asset.name
+        self.basset_name = asset.name
 
     def set_color(self, step):
         if self.basset_name == 'cc_bundle':
             self.normal_color = QtGui.QLinearGradient(QtCore.QPointF(0, 0), QtCore.QPointF(self.w, 0))
-            self.normal_color.setColorAt(0, QtGui.QColor(200, 20, 20))
-            self.normal_color.setColorAt(1, QtGui.QColor(55, 55, 255))
+            color1 = SPECIAL_COLOR['cc_bundle'][0]
+            color2 = SPECIAL_COLOR['cc_bundle'][1]
+            self.normal_color.setColorAt(0, QtGui.QColor(color1[0], color1[1], color1[2]))
+            self.normal_color.setColorAt(1, QtGui.QColor(color2[0], color2[1], color2[2]))
             self.fill_color = self.normal_color
         else:
             super(PlaVersionItem, self).set_color(step)
+
+
+class PopulateEvent(QtCore.QEvent):
+    eventType = QtCore.QEvent.registerEventType()
+
+    def __init__(self, index, item):
+        super(PopulateEvent, self).__init__(PopulateEvent.eventType)
+
+        self.index = index
+        self.item = item
+
+
+class ShowVersionWidgetEvent(QtCore.QEvent):
+    eventType = QtCore.QEvent.registerEventType()
+
+    def __init__(self, item):
+        super(ShowVersionWidgetEvent, self).__init__(ShowVersionWidgetEvent.eventType)
+
+        self.item = item
 

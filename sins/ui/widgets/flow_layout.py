@@ -41,15 +41,18 @@
 ##
 #############################################################################
 
-from sins.module.sqt import *
-import sys
 
+from sins.module.sqt import QPoint, QRect, QSize, Qt
+from sins.module.sqt import (QApplication, QLayout, QPushButton, QSizePolicy,
+                             QWidget)
+
+# from PyQt4.QtGui import *
 
 class Window(QWidget):
     def __init__(self):
         super(Window, self).__init__()
 
-        flowLayout = FlowLayout(margin=20, parent=self)
+        flowLayout = FlowLayout()
         flowLayout.addWidget(QPushButton("Short"))
         flowLayout.addWidget(QPushButton("Longer"))
         flowLayout.addWidget(QPushButton("Different text"))
@@ -64,8 +67,18 @@ class FlowLayout(QLayout):
     def __init__(self, parent=None, margin=0, spacing=-1):
         super(FlowLayout, self).__init__(parent)
 
-        if parent is not None:
-            self.setContentsMargins(margin, margin, margin, margin)
+        self.margin_x = 0
+        self.margin_y = 0
+        # if parent is not None:
+        if isinstance(margin, int):
+            # self.setContentsMargins(margin, margin, margin, margin)
+            self.margin_x = margin
+            self.margin_y = margin
+        elif isinstance(margin, list):
+            if len(margin) == 2:
+                # self.setContentsMargins(margin[0], margin[1], margin[0], margin[1])
+                self.margin_x = margin[0]
+                self.margin_y = margin[1]
 
         self.setSpacing(spacing)
 
@@ -119,12 +132,12 @@ class FlowLayout(QLayout):
 
         margin, _, _, _ = self.getContentsMargins()
 
-        size += QSize(2 * margin, 2 * margin)
+        size += QSize(2 * 0, 2 * 0)
         return size
 
     def doLayout(self, rect, testOnly):
-        x = rect.x() + self.margin()
-        y = rect.y() + self.margin()
+        x = rect.x() + self.margin_x
+        y = rect.y() + self.margin_y
         lineHeight = 0
 
         for item in self.itemList:
@@ -135,7 +148,7 @@ class FlowLayout(QLayout):
                                                                 QSizePolicy.PushButton, Qt.Vertical)
             nextX = x + item.sizeHint().width() + spaceX
             if nextX - spaceX > rect.right() and lineHeight > 0:
-                x = rect.x() + self.margin()
+                x = rect.x() + self.margin_x
                 y = y + lineHeight + spaceY
                 nextX = x + item.sizeHint().width() + spaceX
                 lineHeight = 0
@@ -149,10 +162,11 @@ class FlowLayout(QLayout):
         return y + lineHeight - rect.y()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+
+    import sys
+
     app = QApplication(sys.argv)
-
-    panel = Window()
-    panel.show()
-
-    app.exec_()
+    mainWin = Window()
+    mainWin.show()
+    sys.exit(app.exec_())
