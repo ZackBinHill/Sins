@@ -557,6 +557,7 @@ class TaskConfig(ModelConfig):
 
 
 from sins.utils.python import sort_dict_list_by_key
+from sins.db.utils import data_cmp
 
 
 class DataItem(object):
@@ -578,7 +579,7 @@ class DataGroup(object):
 
     def sort_items(self, key, reverse=False):
         data_list = [i.data for i in self.items]
-        data_list = sort_dict_list_by_key(data_list, key, reverse=reverse)
+        data_list = sort_dict_list_by_key(data_list, key, cmp=data_cmp, reverse=reverse)
         self.items = [DataItem(data) for data in data_list]
 
     def group_by(self, field=None, field_name=None, reverse=False):

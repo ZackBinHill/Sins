@@ -7,11 +7,12 @@ import shutil
 import datetime
 from sins.module.db.peewee import *
 from sins.db.origin_db import database
+from sins.db.deferred_manager import DeferredManager
 from sins.db.user import add_database_user, drop_database_user
 from sins.utils.res import resource
 from sins.utils.encrypt import do_hash
 from sins.utils.path.file import get_file_size, get_file_mime
-from sins.utils.python import get_class_from_name_data
+from sins.utils.python import get_class_from_name_data, create_class_dict
 from sins.utils.log import get_logger
 
 
@@ -37,6 +38,9 @@ def get_current_user():
 
 
 current_user = get_current_user()
+
+
+dm = DeferredManager()
 
 
 class LogTable(Model):
@@ -159,14 +163,6 @@ def upload_file(file_path, description=None):
         return None
 
 
-FileProjectDeferred = DeferredThroughModel()
-FileAssetDeferred = DeferredThroughModel()
-FileShotDeferred = DeferredThroughModel()
-FileTaskDeferred = DeferredThroughModel()
-FileVersionDeferred = DeferredThroughModel()
-FileNoteDeferred = DeferredThroughModel()
-
-
 class Entity(ModelBase):
     @property
     def label_name(self):
@@ -225,7 +221,7 @@ class Status(Entity):
     color = BigIntegerField(column_name='color', null=True)
     referred_table = CharField(column_name='referred_table', null=True)
 
-    thumbnail = ForeignKeyField(column_name='thumbnail_id', model=File, field='id',
+    thumbnail = dm.fk(fk_model_name='File', column_name='thumbnail_id', field='id',
                                 null=True)
 
     class Meta:
@@ -243,9 +239,9 @@ class ApiUser(Entity):
     last_name = CharField(column_name='last_name', null=True)
     full_name = CharField(column_name='full_name', null=True)
 
-    thumbnail = ForeignKeyField(column_name='thumbnail_id', model=File, field='id',
+    thumbnail = dm.fk(fk_model_name='File', column_name='thumbnail_id', field='id',
                                 null=True)
-    permission_group = ForeignKeyField(column_name='permission_id', model=PermissionGroup, field='id',
+    permission_group = dm.fk(fk_model_name='PermissionGroup', column_name='permission_id', field='id',
                                        backref='persons', null=True)
 
     class Meta:
@@ -269,11 +265,11 @@ class Person(Entity):
     join_date = DateField(column_name='join_date', default=datetime.date.today())
     leave_date = DateField(column_name='leave_date', null=True)
 
-    thumbnail = ForeignKeyField(column_name='thumbnail_id', model=File, field='id',
+    thumbnail = dm.fk(fk_model_name='File', column_name='thumbnail_id', field='id',
                                  null=True)
-    department = ForeignKeyField(column_name='department_id', model=Department, field='id', backref='persons',
+    department = dm.fk(fk_model_name='Department', column_name='department_id', field='id', backref='persons',
                                  null=True)
-    permission_group = ForeignKeyField(column_name='permission_id', model=PermissionGroup, field='id',
+    permission_group = dm.fk(fk_model_name='PermissionGroup', column_name='permission_id', field='id',
                                        backref='persons', null=True)
 
     class Meta:
@@ -330,9 +326,6 @@ def create_human_user(add_to_db=True, **data_dict):
     return user
 
 
-ProjectPersonDeferred = DeferredThroughModel()
-
-
 class Project(Entity):
     code = CharField(column_name='code', null=False)
     full_name = CharField(column_name='full_name', null=True)
@@ -341,10 +334,10 @@ class Project(Entity):
     start_time = DateField(column_name='start_time', default=datetime.date.today())
     end_time = DateField(column_name='end_time', null=True)
 
-    thumbnail = ForeignKeyField(column_name='thumbnail_id', model=File, field='id',
+    thumbnail = dm.fk(fk_model_name='File', column_name='thumbnail_id', field='id',
                                 null=True)
-    persons = ManyToManyField(Person, backref='projects', through_model=ProjectPersonDeferred)
-    attachments = ManyToManyField(File, backref='projects', through_model=FileProjectDeferred)
+    persons = dm.mtm(model_name='Person', through_model_name='ProjectPersonConnection', backref='projects')
+    attachments = dm.mtm(model_name='File', through_model_name='FileProjectConnection', backref='projects')
 
     class Meta:
         db_table = 'projects'
@@ -354,18 +347,15 @@ class Project(Entity):
         return self.code
 
 
-NotePersonDeferred = DeferredThroughModel()
-
-
 class Note(Entity):
     subject = TextField(column_name='subject', null=True)
     content = TextField(column_name='content', null=True)
 
-    created_person = ForeignKeyField(column_name='created_person_id', model=Person, field='id', backref='out_notes')
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='notes', null=True)
+    created_person = dm.fk(fk_model_name='Person', column_name='created_person_id', field='id', backref='out_notes')
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='notes', null=True)
 
-    attachments = ManyToManyField(File, backref='notes', through_model=FileNoteDeferred)
-    cc = ManyToManyField(Person, backref='notes', through_model=NotePersonDeferred)
+    attachments = dm.mtm(model_name='File', through_model_name='FileNoteConnection', backref='notes')
+    cc = dm.mtm(model_name='Person', through_model_name='NotePersonConnection', backref='notes')
 
     class Meta:
         db_table = 'notes'
@@ -375,22 +365,12 @@ class Note(Entity):
         return self.subject
 
 
-NoteAssetDeferred = DeferredThroughModel()
-NoteShotDeferred = DeferredThroughModel()
-NoteTaskDeferred = DeferredThroughModel()
-NotePlaylistDeferred = DeferredThroughModel()
-NoteVersionDeferred = DeferredThroughModel()
-
-
-GroupPersonDeferred = DeferredThroughModel()
-
-
 class Group(Entity):
     code = CharField(column_name='code', null=False)
     full_name = CharField(column_name='full_name', null=True)
     description = TextField(column_name='description', null=True)
 
-    persons = ManyToManyField(Person, backref='groups', through_model=GroupPersonDeferred)
+    persons = dm.mtm(model_name='Person', through_model_name='GroupPersonConnection', backref='groups')
 
     class Meta:
         db_table = 'groups'
@@ -415,7 +395,7 @@ class Sequence(Entity):
     description = TextField(column_name='description', null=True)
     status = CharField(column_name='status', default='wts')
 
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='sequences', null=False)
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='sequences', null=False)
 
     class Meta:
         db_table = 'sequences'
@@ -431,7 +411,7 @@ class AssetType(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
 
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='assettypes', null=False)
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='assettypes', null=False)
 
     class Meta:
         db_table = 'asset_types'
@@ -445,13 +425,10 @@ class Tag(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
 
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='tags', null=False)
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='tags', null=False)
 
     class Meta:
         db_table = 'tags'
-
-
-AssetTagDeferred = DeferredThroughModel()
 
 
 class Asset(Entity):
@@ -459,14 +436,14 @@ class Asset(Entity):
     description = TextField(column_name='description', null=True)
     status = CharField(column_name='status', default='wts')
 
-    thumbnail = ForeignKeyField(column_name='thumbnail_id', model=File, field='id',
+    thumbnail = dm.fk(fk_model_name='File', column_name='thumbnail_id', field='id',
                                 null=True)
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='assets')
-    asset_type = ForeignKeyField(column_name='asset_type_id', model=AssetType, field='id', backref='assets')
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='assets')
+    asset_type = dm.fk(fk_model_name='AssetType', column_name='asset_type_id', field='id', backref='assets')
 
-    tags = ManyToManyField(Tag, backref='assets', through_model=AssetTagDeferred)
-    attachments = ManyToManyField(File, backref='assets', through_model=FileAssetDeferred)
-    notes = ManyToManyField(Note, backref='assets', through_model=NoteAssetDeferred)
+    tags = dm.mtm(model_name='Tag', through_model_name='AssetTagConnection', backref='assets')
+    attachments = dm.mtm(model_name='File', through_model_name='FileAssetConnection', backref='assets')
+    notes = dm.mtm(model_name='Note', through_model_name='NoteAssetConnection', backref='assets')
 
     class Meta:
         db_table = 'assets'
@@ -480,10 +457,6 @@ class Asset(Entity):
         if self.asset_type:
             return {'object': self.asset_type, 'label': self.asset_type.name}
         return None
-
-
-ShotTagDeferred = DeferredThroughModel()
-ShotAssetDeferred = DeferredThroughModel()
 
 
 class Shot(Entity):
@@ -502,15 +475,15 @@ class Shot(Entity):
     handles = CharField(column_name='handles', default='0+0')
     final_delivery = DateField(column_name='final_delivery', null=True)
 
-    thumbnail = ForeignKeyField(column_name='thumbnail_id', model=File, field='id',
+    thumbnail = dm.fk(fk_model_name='File', column_name='thumbnail_id', field='id',
                                 null=True)
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='shots')
-    sequence = ForeignKeyField(column_name='sequence_id', model=Sequence, field='id', backref='shots')
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='shots')
+    sequence = dm.fk(fk_model_name='Sequence', column_name='sequence_id', field='id', backref='shots')
 
-    assets = ManyToManyField(Asset, backref='shots', through_model=ShotAssetDeferred)
-    tags = ManyToManyField(Tag, backref='shots', through_model=ShotTagDeferred)
-    attachments = ManyToManyField(File, backref='shots', through_model=FileShotDeferred)
-    notes = ManyToManyField(Note, backref='shots', through_model=NoteShotDeferred)
+    assets = dm.mtm(model_name='Asset', through_model_name='ShotAssetConnection', backref='shots')
+    tags = dm.mtm(model_name='Tag', through_model_name='ShotTagConnection', backref='shots')
+    attachments = dm.mtm(model_name='File', through_model_name='FileShotConnection', backref='shots')
+    notes = dm.mtm(model_name='Note', through_model_name='NoteShotConnection', backref='shots')
 
     class Meta:
         db_table = 'shots'
@@ -526,9 +499,6 @@ class Shot(Entity):
         return None
 
 
-TaskAssignToDeferred = DeferredThroughModel()
-
-
 class Task(Entity):
     name = CharField(column_name='name', null=False)
     description = TextField(column_name='description', null=True)
@@ -536,18 +506,19 @@ class Task(Entity):
     end_date = DateField(column_name='end_date', null=True)
     planned_time = TimestampField(column_name='planned_time', null=True)
     status = CharField(column_name='status', default='wip')
+    is_main = BooleanField(column_name='is_main', default=False)
 
-    thumbnail = ForeignKeyField(column_name='thumbnail_id', model=File, field='id',
+    thumbnail = dm.fk(fk_model_name='File', column_name='thumbnail_id', field='id',
                                 null=True)
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='tasks')
-    shot = ForeignKeyField(column_name='shot_id', model=Shot, field='id', backref='tasks', null=True)
-    asset = ForeignKeyField(column_name='asset_id', model=Asset, field='id', backref='tasks', null=True)
-    step = ForeignKeyField(column_name='step_id', model=PipelineStep, field='id', backref='tasks', null=False)
-    assigned_from = ForeignKeyField(column_name='person_id', model=Person, field='id', backref='assignment', null=True)
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='tasks')
+    shot = dm.fk(fk_model_name='Shot', column_name='shot_id', field='id', backref='tasks', null=True)
+    asset = dm.fk(fk_model_name='Asset', column_name='asset_id', field='id', backref='tasks', null=True)
+    step = dm.fk(fk_model_name='PipelineStep', column_name='step_id', field='id', backref='tasks', null=False)
+    assigned_from = dm.fk(fk_model_name='Person', column_name='person_id', field='id', backref='assignment', null=True)
 
-    assigned_to = ManyToManyField(Person, backref='tasks', through_model=TaskAssignToDeferred)
-    attachments = ManyToManyField(File, backref='tasks', through_model=FileTaskDeferred)
-    notes = ManyToManyField(Note, backref='tasks', through_model=NoteTaskDeferred)
+    assigned_to = dm.mtm(model_name='Person', through_model_name='TaskAssignToConnection', backref='tasks')
+    attachments = dm.mtm(model_name='File', through_model_name='FileTaskConnection', backref='tasks')
+    notes = dm.mtm(model_name='Note', through_model_name='NoteTaskConnection', backref='tasks')
 
     class Meta:
         db_table = 'tasks'
@@ -582,10 +553,10 @@ class Timelog(Entity):
     description = TextField(column_name='description', null=True)
     duration = TimestampField(column_name='duration', null=True)
 
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='timelogs')
-    task = ForeignKeyField(column_name='task_id', model=Task, field='id', backref='timelogs')
-    shot = ForeignKeyField(column_name='shot_id', model=Shot, field='id', backref='timelogs', null=True)
-    asset = ForeignKeyField(column_name='asset_id', model=Asset, field='id', backref='timelogs', null=True)
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='timelogs')
+    task = dm.fk(fk_model_name='Task', column_name='task_id', field='id', backref='timelogs')
+    shot = dm.fk(fk_model_name='Shot', column_name='shot_id', field='id', backref='timelogs', null=True)
+    asset = dm.fk(fk_model_name='Asset', column_name='asset_id', field='id', backref='timelogs', null=True)
 
     class Meta:
         db_table = 'timelogs'
@@ -596,14 +567,12 @@ class Playlist(Entity):
     date_time = DateTimeField(column_name='date_time', null=True)
     description = TextField(column_name='description', null=True)
 
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='playlists')
-    notes = ManyToManyField(Note, backref='playlists', through_model=NotePlaylistDeferred)
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='playlists')
+    
+    notes = dm.mtm(model_name='Note', through_model_name='NotePlaylistConnection', backref='playlists')
 
     class Meta:
         db_table = 'playlists'
-
-
-VersionPlaylistDeferred = DeferredThroughModel()
 
 
 class Version(Entity):
@@ -615,20 +584,18 @@ class Version(Entity):
     path_to_movie = TextField(column_name='path_to_movie', null=True)
     path_to_frame = TextField(column_name='path_to_frame', null=True)
 
-    uploaded_movie = ForeignKeyField(column_name='uploaded_movie_id', model=File, field='id',
-                                null=True)
-    project = ForeignKeyField(column_name='project_id', model=Project, field='id', backref='versions')
-    sequence = ForeignKeyField(column_name='sequence_id', model=Sequence, field='id', backref='versions', null=True)
-    shot = ForeignKeyField(column_name='shot_id', model=Shot, field='id', backref='versions', null=True)
-    asset_type = ForeignKeyField(column_name='asset_type_id', model=AssetType, field='id', backref='versions',
-                                 null=True)
-    asset = ForeignKeyField(column_name='asset_id', model=Asset, field='id', backref='versions', null=True)
-    task = ForeignKeyField(column_name='task_id', model=Task, field='id', backref='versions')
-    # step = ForeignKeyField(column_name='step_id', model=PipelineStep, field='id', backref='versions')
+    uploaded_movie = dm.fk(fk_model_name='File', column_name='uploaded_movie_id', field='id',null=True)
+    project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='versions')
+    sequence = dm.fk(fk_model_name='Sequence', column_name='sequence_id', field='id', backref='versions', null=True)
+    shot = dm.fk(fk_model_name='Shot', column_name='shot_id', field='id', backref='versions', null=True)
+    asset_type = dm.fk(fk_model_name='AssetType', column_name='asset_type_id', field='id', backref='versions',null=True)
+    asset = dm.fk(fk_model_name='Asset', column_name='asset_id', field='id', backref='versions', null=True)
+    task = dm.fk(fk_model_name='Task', column_name='task_id', field='id', backref='versions')
+    step = dm.fk(fk_model_name='PipelineStep', column_name='step_id', field='id', backref='versions')
 
-    playlists = ManyToManyField(Playlist, backref='versions', through_model=VersionPlaylistDeferred)
-    attachments = ManyToManyField(File, backref='versions', through_model=FileVersionDeferred)
-    notes = ManyToManyField(Note, backref='versions', through_model=NoteVersionDeferred)
+    playlists = dm.mtm(model_name='Playlist', through_model_name='VersionPlaylistConnection', backref='versions')
+    attachments = dm.mtm(model_name='File', through_model_name='FileVersionConnection', backref='versions')
+    notes = dm.mtm(model_name='Note', through_model_name='NoteVersionConnection', backref='versions')
 
     class Meta:
         db_table = 'versions'
@@ -651,8 +618,8 @@ class Version(Entity):
 
 # relationship
 class VersionRelationship(ModelBase):
-    from_version = ForeignKeyField(Version, backref='destinations')
-    to_version = ForeignKeyField(Version, backref='sources')
+    from_version = dm.fk(fk_model_name='Version', backref='destinations')
+    to_version = dm.fk(fk_model_name='Version', backref='sources')
 
     class Meta:
         indexes = ((('from_version', 'to_version'), True),)
@@ -660,8 +627,8 @@ class VersionRelationship(ModelBase):
 
 
 class NoteRelationship(ModelBase):
-    from_note = ForeignKeyField(Note, backref='replies')
-    to_note = ForeignKeyField(Note, backref='sources')
+    from_note = dm.fk(fk_model_name='Note', backref='replies')
+    to_note = dm.fk(fk_model_name='Note', backref='sources')
 
     class Meta:
         indexes = ((('from_note', 'to_note'), True),)
@@ -670,8 +637,8 @@ class NoteRelationship(ModelBase):
 
 # Note connection
 class NotePersonConnection(ModelBase):
-    person = ForeignKeyField(Person)
-    note = ForeignKeyField(Note)
+    person = dm.fk(fk_model_name='Person')
+    note = dm.fk(fk_model_name='Note')
 
     class Meta:
         indexes = ((('note', 'person'), True),)
@@ -679,8 +646,8 @@ class NotePersonConnection(ModelBase):
 
 
 class NoteAssetConnection(ModelBase):
-    asset = ForeignKeyField(Asset)
-    note = ForeignKeyField(Note)
+    asset = dm.fk(fk_model_name='Asset')
+    note = dm.fk(fk_model_name='Note')
 
     class Meta:
         indexes = ((('note', 'asset'), True),)
@@ -688,8 +655,8 @@ class NoteAssetConnection(ModelBase):
 
 
 class NoteShotConnection(ModelBase):
-    shot = ForeignKeyField(Shot)
-    note = ForeignKeyField(Note)
+    shot = dm.fk(fk_model_name='Shot')
+    note = dm.fk(fk_model_name='Note')
 
     class Meta:
         indexes = ((('shot', 'note'), True),)
@@ -697,8 +664,8 @@ class NoteShotConnection(ModelBase):
 
 
 class NoteTaskConnection(ModelBase):
-    task = ForeignKeyField(Task)
-    note = ForeignKeyField(Note)
+    task = dm.fk(fk_model_name='Task')
+    note = dm.fk(fk_model_name='Note')
 
     class Meta:
         indexes = ((('task', 'note'), True),)
@@ -706,8 +673,8 @@ class NoteTaskConnection(ModelBase):
 
 
 class NotePlaylistConnection(ModelBase):
-    playlist = ForeignKeyField(Playlist)
-    note = ForeignKeyField(Note)
+    playlist = dm.fk(fk_model_name='Playlist')
+    note = dm.fk(fk_model_name='Note')
 
     class Meta:
         indexes = ((('playlist', 'note'), True),)
@@ -715,8 +682,8 @@ class NotePlaylistConnection(ModelBase):
 
 
 class NoteVersionConnection(ModelBase):
-    version = ForeignKeyField(Version)
-    note = ForeignKeyField(Note)
+    version = dm.fk(fk_model_name='Version')
+    note = dm.fk(fk_model_name='Note')
 
     class Meta:
         indexes = ((('version', 'note'), True),)
@@ -725,8 +692,8 @@ class NoteVersionConnection(ModelBase):
 
 # File connection
 class FileProjectConnection(ModelBase):
-    project = ForeignKeyField(Project)
-    file = ForeignKeyField(File)
+    project = dm.fk(fk_model_name='Project')
+    file = dm.fk(fk_model_name='File')
 
     class Meta:
         indexes = ((('project', 'file'), True),)
@@ -734,8 +701,8 @@ class FileProjectConnection(ModelBase):
 
 
 class FileAssetConnection(ModelBase):
-    asset = ForeignKeyField(Asset)
-    file = ForeignKeyField(File)
+    asset = dm.fk(fk_model_name='Asset')
+    file = dm.fk(fk_model_name='File')
 
     class Meta:
         indexes = ((('asset', 'file'), True),)
@@ -743,8 +710,8 @@ class FileAssetConnection(ModelBase):
 
 
 class FileShotConnection(ModelBase):
-    shot = ForeignKeyField(Shot)
-    file = ForeignKeyField(File)
+    shot = dm.fk(fk_model_name='Shot')
+    file = dm.fk(fk_model_name='File')
 
     class Meta:
         indexes = ((('shot', 'file'), True),)
@@ -752,8 +719,8 @@ class FileShotConnection(ModelBase):
 
 
 class FileTaskConnection(ModelBase):
-    task = ForeignKeyField(Task)
-    file = ForeignKeyField(File)
+    task = dm.fk(fk_model_name='Task')
+    file = dm.fk(fk_model_name='File')
 
     class Meta:
         indexes = ((('task', 'file'), True),)
@@ -761,8 +728,8 @@ class FileTaskConnection(ModelBase):
 
 
 class FileVersionConnection(ModelBase):
-    version = ForeignKeyField(Version)
-    file = ForeignKeyField(File)
+    version = dm.fk(fk_model_name='Version')
+    file = dm.fk(fk_model_name='File')
 
     class Meta:
         indexes = ((('version', 'file'), True),)
@@ -770,8 +737,8 @@ class FileVersionConnection(ModelBase):
 
 
 class FileNoteConnection(ModelBase):
-    note = ForeignKeyField(Note)
-    file = ForeignKeyField(File)
+    note = dm.fk(fk_model_name='Note')
+    file = dm.fk(fk_model_name='File')
 
     class Meta:
         indexes = ((('note', 'file'), True),)
@@ -779,8 +746,8 @@ class FileNoteConnection(ModelBase):
 
 
 class ProjectPersonConnection(ModelBase):
-    project = ForeignKeyField(Project)
-    person = ForeignKeyField(Person)
+    project = dm.fk(fk_model_name='Project')
+    person = dm.fk(fk_model_name='Person')
 
     class Meta:
         indexes = ((('project', 'person'), True),)
@@ -788,8 +755,8 @@ class ProjectPersonConnection(ModelBase):
 
 
 class GroupPersonConnection(ModelBase):
-    group = ForeignKeyField(Group)
-    person = ForeignKeyField(Person)
+    group = dm.fk(fk_model_name='Group')
+    person = dm.fk(fk_model_name='Person')
 
     class Meta:
         indexes = ((('group', 'person'), True),)
@@ -797,8 +764,8 @@ class GroupPersonConnection(ModelBase):
 
 
 class AssetTagConnection(ModelBase):
-    asset = ForeignKeyField(Asset)
-    tag = ForeignKeyField(Tag)
+    asset = dm.fk(fk_model_name='Asset')
+    tag = dm.fk(fk_model_name='Tag')
 
     class Meta:
         indexes = ((('asset', 'tag'), True),)
@@ -806,8 +773,8 @@ class AssetTagConnection(ModelBase):
 
 
 class ShotTagConnection(ModelBase):
-    shot = ForeignKeyField(Shot)
-    tag = ForeignKeyField(Tag)
+    shot = dm.fk(fk_model_name='Shot')
+    tag = dm.fk(fk_model_name='Tag')
 
     class Meta:
         indexes = ((('shot', 'tag'), True),)
@@ -815,8 +782,8 @@ class ShotTagConnection(ModelBase):
 
 
 class ShotAssetConnection(ModelBase):
-    shot = ForeignKeyField(Shot)
-    asset = ForeignKeyField(Asset)
+    shot = dm.fk(fk_model_name='Shot')
+    asset = dm.fk(fk_model_name='Asset')
 
     class Meta:
         indexes = ((('shot', 'asset'), True),)
@@ -824,8 +791,8 @@ class ShotAssetConnection(ModelBase):
 
 
 class TaskAssignToConnection(ModelBase):
-    task = ForeignKeyField(Task)
-    assign_to = ForeignKeyField(Person)
+    task = dm.fk(fk_model_name='Task')
+    assign_to = dm.fk(fk_model_name='Person')
 
     class Meta:
         indexes = ((('task', 'assign_to'), True),)
@@ -833,35 +800,13 @@ class TaskAssignToConnection(ModelBase):
 
 
 class VersionPlaylistConnection(ModelBase):
-    version = ForeignKeyField(Version)
-    playlist = ForeignKeyField(Playlist)
+    version = dm.fk(fk_model_name='Version')
+    playlist = dm.fk(fk_model_name='Playlist')
 
     class Meta:
         indexes = ((('version', 'playlist'), True),)
         db_table = 'version_playlist_connection'
 
-
-FileProjectDeferred.set_model(FileProjectConnection)
-FileAssetDeferred.set_model(FileAssetConnection)
-FileShotDeferred.set_model(FileShotConnection)
-FileTaskDeferred.set_model(FileTaskConnection)
-FileVersionDeferred.set_model(FileVersionConnection)
-FileNoteDeferred.set_model(FileNoteConnection)
-
-NotePersonDeferred.set_model(NotePersonConnection)
-NoteAssetDeferred.set_model(NoteAssetConnection)
-NoteShotDeferred.set_model(NoteShotConnection)
-NoteTaskDeferred.set_model(NoteTaskConnection)
-NotePlaylistDeferred.set_model(NotePlaylistConnection)
-NoteVersionDeferred.set_model(NoteVersionConnection)
-
-ProjectPersonDeferred.set_model(ProjectPersonConnection)
-GroupPersonDeferred.set_model(GroupPersonConnection)
-AssetTagDeferred.set_model(AssetTagConnection)
-ShotTagDeferred.set_model(ShotTagConnection)
-ShotAssetDeferred.set_model(ShotAssetConnection)
-TaskAssignToDeferred.set_model(TaskAssignToConnection)
-VersionPlaylistDeferred.set_model(VersionPlaylistConnection)
 
 normal_tables = [
     File,
@@ -908,12 +853,22 @@ connection_tables = [
     ShotAssetConnection,
     TaskAssignToConnection,
     VersionPlaylistConnection,
+
     VersionRelationship,
+    NoteRelationship,
 ]
 
 all_tables = [LogTable, ]
 all_tables.extend(normal_tables)
 all_tables.extend(connection_tables)
+
+
+model_dict = create_class_dict(globals().copy(), ModelBase)
+# for i in model_dict:
+#     print i, model_dict[i]
+# for i in list(DeferredForeignKey._unresolved):
+#     print i
+dm.connect(model_dict)
 
 
 
@@ -988,11 +943,12 @@ def auto_update_trigger(database):
 
 
 def drop_all_table(database):
-    database.drop_tables(all_tables, safe=True)
+    database.drop_tables(all_tables, safe=True, cascade=True)
 
 
 def create_all_table(database):
     database.create_tables(all_tables, safe=True)
+    dm.create_fk()
     auto_update_trigger(database)
 
 
@@ -1012,8 +968,11 @@ def get_current_permission():
 
 
 if database.table_exists(Person._meta.table):
-    current_user_object = get_current_user_object()
-    current_permission = get_current_permission()
+    try:
+        current_user_object = get_current_user_object()
+        current_permission = get_current_permission()
+    except:
+        pass
 
 
 if __name__ == '__main__':

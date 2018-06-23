@@ -5,8 +5,6 @@
 from sins.utils.const import declare_constants
 
 
-DATABASE_NAME = 'sins_test05'
-
 database_type = declare_constants(
     postgresql='PostgreSql',
     mysql='Mysql',

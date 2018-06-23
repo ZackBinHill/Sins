@@ -488,9 +488,9 @@ def test_add_version_uploaded_movie():
 if __name__ == '__main__':
     print TEST_DATA_FOLDER
 
-    # drop_and_create_table()
-    #
-    # create_default()
+    drop_and_create_table()
+
+    create_default()
     #
     # test_person()
     # test_project()

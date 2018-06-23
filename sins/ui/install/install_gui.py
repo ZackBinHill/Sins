@@ -8,7 +8,7 @@ from sins.module.sqt import *
 from sins.module.db import mysql, psycopg2
 from sins.ui.widgets.labelbutton import QLabelButton
 from sins.utils.settings import Global_Setting, global_settings
-from sins.db.const import database_type
+from sins.db.utils.const import database_type
 
 
 class FileButton(QLabelButton):
@@ -49,13 +49,15 @@ class InstallDialog(QDialog):
         self.dbtypeCombo.addItems([database_type.postgresql, database_type.mysql])
         self.hostEdit = QLineEdit("localhost")
         self.portEdit = QLineEdit("5432")
+        self.nameEdit = QLineEdit("sins_test05")
         self.userEdit = QLineEdit("postgres")
         self.pwdEdit = QLineEdit('123456')
         self.pwdEdit.setEchoMode(QLineEdit.Password)
         self.layout1.addRow("Database Type: ", self.dbtypeCombo)
         self.layout1.addRow("Database Host: ", self.hostEdit)
         self.layout1.addRow("Database Port: ", self.portEdit)
-        self.layout1.addRow("User: ", self.userEdit)
+        self.layout1.addRow("Database Name: ", self.nameEdit)
+        self.layout1.addRow("Root User: ", self.userEdit)
         self.layout1.addRow("Password: ", self.pwdEdit)
 
         self.layout2 = QHBoxLayout()
@@ -86,6 +88,7 @@ class InstallDialog(QDialog):
         dbtype = str(self.dbtypeCombo.currentText())
         host = str(self.hostEdit.text())
         port = int(str(self.portEdit.text()))
+        db_name = str(self.nameEdit.text())
         user = str(self.userEdit.text())
         password = str(self.pwdEdit.text())
         connect_dict = {
@@ -105,6 +108,7 @@ class InstallDialog(QDialog):
             Global_Setting.setValue(global_settings.database_type, dbtype)
             Global_Setting.setValue(global_settings.database_host, host)
             Global_Setting.setValue(global_settings.database_port, port)
+            Global_Setting.setValue(global_settings.database_name, db_name)
         except:
             print "connect to database failed, check host and password"
             traceback.print_exc()

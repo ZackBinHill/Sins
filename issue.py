@@ -61,11 +61,11 @@
 # asset sequence link? > 暂时不要
 # note, file连接为many
 
-database name作为config
+# database name作为config
 
 user上次登陆时间
-使用deferredmodel
-version添加step外键
+# 使用deferredmodel
+# version添加step外键
 
 
 jpg文件无法加载
@@ -137,6 +137,7 @@ status图标
 global setting:
 database host
 database port
+database name
 数据文件路径
 rv路径
 提交version自动更新shot缩略图

@@ -8,6 +8,7 @@ global_settings = declare_constants(
     database_type='Database/Type',
     database_host='Database/Host',
     database_port='Database/Port',
+    database_name='Database/Name',
 
     data_path='Data/path',
 

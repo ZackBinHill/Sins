@@ -9,7 +9,7 @@ from sins.utils.env.consts import login_env
 from sins.utils.encrypt import do_decrypt
 from sins.utils.log import get_logger
 from sins.utils.settings import Global_Setting, global_settings, convert_setting
-from sins.db.const import DATABASE_NAME, database_type
+from sins.db.utils.const import database_type
 
 logger = get_logger(__file__)
 
@@ -21,6 +21,9 @@ port = convert_setting(port_setting, to_type='int')
 
 dbtype_setting = Global_Setting.value(global_settings.database_type)
 dbtype = convert_setting(dbtype_setting)
+
+db_name_setting = Global_Setting.value(global_settings.database_name)
+db_name = convert_setting(db_name_setting)
 
 user = os.environ.get(login_env.user)
 pwd = os.environ.get(login_env.pwd)
@@ -47,9 +50,9 @@ connect_dict = {
 
 
 if dbtype == database_type.postgresql:
-    database = PostgresqlDatabase(DATABASE_NAME, **connect_dict)
+    database = PostgresqlDatabase(db_name, **connect_dict)
 elif dbtype == database_type.mysql:
-    database = MySQLDatabase(DATABASE_NAME, **connect_dict)
+    database = MySQLDatabase(db_name, **connect_dict)
 
 if __name__ == '__main__':
     database.connect()
