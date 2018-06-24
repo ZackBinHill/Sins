@@ -3,7 +3,8 @@
 # 4/7/2018
 
 from sins.utils.log import log_cost_time
-from sins.ui.widgets.table.data_table_configs import *
+from sins.config.data_view_configs import *
+from sins.config.utils import DataItem, DataGroup, get_prefetch_models
 from sins.ui.widgets.action import SeparatorAction
 from sins.ui.widgets.label import QLabelButton
 from sins.db.models import *
