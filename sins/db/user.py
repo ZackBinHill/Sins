@@ -3,7 +3,7 @@
 # 4/17/2018
 
 import traceback
-from sins.db.origin_db import DATABASE_NAME, MySQLDatabase, PostgresqlDatabase
+from sins.db.origin_db import db_name, MySQLDatabase, PostgresqlDatabase
 from sins.utils.log import get_logger
 
 logger = get_logger(__name__)
@@ -16,7 +16,7 @@ def add_database_user(database, user='user1', pwd='123456'):
         try:
             cursor.execute('CREATE USER "{user}"@"%" IDENTIFIED BY "{pwd}"'.format(user=user, pwd=pwd))
             cursor.execute('GRANT SELECT, INSERT, UPDATE ON {database_name}.* TO "{user}"@"%"'.format(
-                database_name=DATABASE_NAME, user=user)
+                database_name=db_name, user=user)
             )
             cursor.execute('flush privileges')
         except:

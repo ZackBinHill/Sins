@@ -3,20 +3,15 @@
 # 5/23/2018
 
 from sins.module.sqt import *
-from sins.module.time_utils import current_time, today, datetime_to_str, str_to_datetime, time
-from sins.utils.res import resource
-from sins.utils.log import get_logger
-from sins.utils.python import get_class_from_name_data
-from sins.utils.color import int10_to_rgb, rgba_to_int10
-from sins.ui.widgets.thumbnail_label import ThumbnailLabel
+from sins.module.time_utils import current_time, datetime_to_str
+from sins.utils.color import int10_to_rgb
+from sins.ui.widgets.label import ThumbnailLabel
 from sins.ui.widgets.calendar import Calendar, CalendarClock, TimedeltaWidget, get_detail_time_delta
 from sins.ui.widgets.colorwheel import ColorWheelWindow
 from sins.ui.widgets.image_upload_edit import ImageUploadEdit
 from sins.ui.widgets.flow_layout import FlowLayout
 from sins.db.models import *
 import sys
-import copy
-import math
 
 logger = get_logger(__name__)
 
@@ -1224,8 +1219,6 @@ class CellMultiObjectEdit(CellWidget):
 
 
 if __name__ == '__main__':
-    import time
-
     app = QApplication(sys.argv)
 
     # widget = MultiObjectEditWidget()

@@ -25,6 +25,9 @@ dbtype = convert_setting(dbtype_setting)
 db_name_setting = Global_Setting.value(global_settings.database_name)
 db_name = convert_setting(db_name_setting)
 
+data_path_setting = Global_Setting.value(global_settings.data_path)
+data_path = convert_setting(data_path_setting)
+
 user = os.environ.get(login_env.user)
 pwd = os.environ.get(login_env.pwd)
 

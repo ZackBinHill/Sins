@@ -63,9 +63,11 @@
 
 # database name作为config
 
-user上次登陆时间
+# user上次登陆时间
 # 使用deferredmodel
 # version添加step外键
+# note添加type, to_group
+
 
 
 jpg文件无法加载
@@ -76,26 +78,28 @@ jpg文件无法加载
 优化filetypes
 
 
+使用label_name
+celledit属性
 尽量使用单行edit tooltip显示全部
 field属性全部从config文件获取
 新的权限方法?
+多外键celledit
+单个外键celledit可编辑
+status icon referred_table 编辑
 
 
 
 
-
+数据表默认过滤
 advanced group
+数据库搜索
+可选择列的搜索框
+
+
 
 优化查询速度prefetch 需要大量数据测试
 优化表格刷新速度 > refresh速度最快为0.3s(50行全部为label), 最慢为0.5s(全部为textedit)
 
-数据表默认过滤
-status icon referred_table 编辑
-
-多外键celledit
-单个外键celledit可编辑
-数据库搜索
-可选择列的搜索框
 
 
 创建数据

@@ -2,18 +2,14 @@
 # __author__ = 'XingHuan'
 # 2/9/2018
 
-import os
 import sys
-import time
 from sins.module.sqt import *
-from sins.ui.widgets.thumbnail_label import ThumbnailLabel
+from sins.ui.widgets.label import ThumbnailLabel
 from sins.ui.widgets.tab.property_widget import PropertyWidget
 from sins.ui.widgets.flow_layout import FlowLayout
 from sins.ui.utils import get_text_wh
-from sins.test.test_res import TestMov
-from sins.utils.res import resource
 from sins.utils.python import get_name_data_from_class_or_instance
-from sins.utils.log import get_logger, log_cost_time
+from sins.utils.log import log_cost_time
 from sins.db.models import *
 from sins.db.permission import get_permission_projects
 

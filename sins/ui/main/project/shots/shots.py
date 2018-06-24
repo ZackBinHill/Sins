@@ -2,18 +2,15 @@
 # __author__ = 'XingHuan'
 # 2/9/2018
 
-import os
 import sys
 from sins.module.sqt import *
-from sins.ui.widgets.thumbnail_label import ThumbnailLabel
+from sins.ui.widgets.label import ThumbnailLabel
 from sins.ui.widgets.tab.tab import TabWidget
 from sins.ui.widgets.tab.custom_tab import CustomTabWindow, DefaultTabButton
 from sins.ui.widgets.tab.property_widget import PropertyWidget
 from sins.ui.widgets.table.data_table import DataWidget
 from sins.ui.widgets.table.data_table_configs import ShotConfig
 from sins.test.test_res import TestMov
-from sins.utils.res import resource
-from sins.utils.log import get_logger
 from sins.db.models import *
 
 

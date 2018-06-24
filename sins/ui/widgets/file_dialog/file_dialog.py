@@ -3,7 +3,7 @@
 # 4/6/2018
 
 from sins.module.sqt import *
-from sins.ui.widgets.labelbutton import QLabelButton
+from sins.ui.widgets.label import QLabelButton
 from sins.utils.path.file import get_detail_of_path, get_dirs, get_files
 from sins.utils.path.sequence import get_sequences
 from sins.utils.res import resource

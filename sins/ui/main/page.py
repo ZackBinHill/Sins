@@ -11,6 +11,7 @@ from sins.ui.widgets.tab.custom_tab import CustomTabWindow, MainTabButton
 from sins.ui.widgets.action import SeparatorAction
 from sins.ui.widgets.label import RoundLabel, RoundRectLabel
 from sins.db.models import *
+from sins.db.current import current_user_object
 from sins.db.permission import get_permission_projects
 
 

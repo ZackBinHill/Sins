@@ -2,13 +2,10 @@
 # __author__ = 'XingHuan'
 # 4/7/2018
 
-from sins.module.sqt import *
-from sins.utils.res import resource
-from sins.utils.log import log_cost_time, get_logger
-from sins.utils.python import get_class_from_name_data
+from sins.utils.log import log_cost_time
 from sins.ui.widgets.table.data_table_configs import *
 from sins.ui.widgets.action import SeparatorAction
-from sins.ui.widgets.labelbutton import QLabelButton
+from sins.ui.widgets.label import QLabelButton
 from sins.db.models import *
 from sins.db.permission import is_editable
 import sys

@@ -7,12 +7,13 @@ import random
 import time
 import datetime
 from sins.db.models import *
+from sins.db.current import get_current_user_instance
 from sins.db.default_run import run_default
 from sins.utils.encrypt import do_hash
 from test_person import gen_one_gender_word
 
-# TEST_DATA_FOLDER = os.path.join(os.path.dirname(__file__), 'test_data')
-TEST_DATA_FOLDER = os.path.abspath('./test_data')
+TEST_DATA_FOLDER = os.path.join(os.path.dirname(__file__), 'test_data')
+# TEST_DATA_FOLDER = os.path.abspath('./test_data')
 
 
 def get_random_time(t1=(2010,1,1,0,0,0,0,0,0), t2=(2018,12,31,23,59,59,0,0,0)):
@@ -315,7 +316,7 @@ def test_shot_asset_relationship():
 
 def test_task():
     print '# ------------test task data------------ #'
-    current_user_object = get_current_user_object()
+    current_user_object = get_current_user_instance()
 
     shots = (Shot.select(Shot, Project).join(Project).where(Project.code.in_(['DRM', 'TLW'])))
     assets = (Asset.select(Asset, Project).join(Project).where(Project.code.in_(['DRM', 'TLW'])))
@@ -420,7 +421,7 @@ def test_version():
     tasks = (Task.select())
     prefetch(tasks, Shot, Sequence)
     prefetch(tasks, Asset, AssetType)
-    prefetch(tasks, Project)
+    prefetch(tasks, Project, PipelineStep)
 
     version_data = []
     for task in tasks:
@@ -429,6 +430,7 @@ def test_version():
         asset = task.asset
         asset_type = asset.asset_type if asset is not None else None
         project = task.project
+        step = task.step
 
         entity = shot if shot is not None else asset
 
@@ -456,6 +458,7 @@ def test_version():
                 'sequence': seq,
                 'asset': asset,
                 'asset_type': asset_type,
+                'step': step,
             })
 
     Version.insert_many(version_data).execute()

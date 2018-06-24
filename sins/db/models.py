@@ -6,7 +6,7 @@ import os
 import shutil
 import datetime
 from sins.module.db.peewee import *
-from sins.db.origin_db import database
+from sins.db.origin_db import database, data_path
 from sins.db.deferred_manager import DeferredManager
 from sins.db.user import add_database_user, drop_database_user
 from sins.utils.res import resource
@@ -18,9 +18,6 @@ from sins.utils.log import get_logger
 
 logger = get_logger(__name__)
 logger.debug('load models from %s' % __file__)
-
-
-DATA_PATH = 'F:/Temp/pycharm/Sins_data/sins'
 
 
 def get_current_user():
@@ -108,9 +105,13 @@ class File(ModelBase):
         db_table = 'files'
 
     @property
+    def label_name(self):
+        return self.file_name
+
+    @property
     def host_path(self):
         index = '%012d' % self.id
-        return '{}/File/{}/{}/{}/{}'.format(DATA_PATH,
+        return '{}/File/{}/{}/{}/{}'.format(data_path,
                                             index[0:4],
                                             index[4:8],
                                             index[8:12],
@@ -264,6 +265,7 @@ class Person(Entity):
     active = BooleanField(column_name='active', default=1)
     join_date = DateField(column_name='join_date', default=datetime.date.today())
     leave_date = DateField(column_name='leave_date', null=True)
+    last_login_time = DateTimeField(column_name='last_login_time', default=datetime.datetime.now())
 
     thumbnail = dm.fk(fk_model_name='File', column_name='thumbnail_id', field='id',
                                  null=True)
@@ -350,12 +352,15 @@ class Project(Entity):
 class Note(Entity):
     subject = TextField(column_name='subject', null=True)
     content = TextField(column_name='content', null=True)
+    type = CharField(column_name='note_type', default='Internal')
 
     created_person = dm.fk(fk_model_name='Person', column_name='created_person_id', field='id', backref='out_notes')
+    to_person = dm.fk(fk_model_name='Person', column_name='to_person_id', field='id', backref='in_notes')
     project = dm.fk(fk_model_name='Project', column_name='project_id', field='id', backref='notes', null=True)
 
     attachments = dm.mtm(model_name='File', through_model_name='FileNoteConnection', backref='notes')
-    cc = dm.mtm(model_name='Person', through_model_name='NotePersonConnection', backref='notes')
+    cc_person = dm.mtm(model_name='Person', through_model_name='NotePersonConnection', backref='notes')
+    cc_group = dm.mtm(model_name='Group', through_model_name='NoteGroupConnection', backref='notes')
 
     class Meta:
         db_table = 'notes'
@@ -645,6 +650,15 @@ class NotePersonConnection(ModelBase):
         db_table = 'note_person_connection'
 
 
+class NoteGroupConnection(ModelBase):
+    group = dm.fk(fk_model_name='Group')
+    note = dm.fk(fk_model_name='Note')
+
+    class Meta:
+        indexes = ((('note', 'group'), True),)
+        db_table = 'note_group_connection'
+
+
 class NoteAssetConnection(ModelBase):
     asset = dm.fk(fk_model_name='Asset')
     note = dm.fk(fk_model_name='Note')
@@ -840,6 +854,7 @@ connection_tables = [
     FileNoteConnection,
 
     NotePersonConnection,
+    NoteGroupConnection,
     NoteAssetConnection,
     NoteShotConnection,
     NoteTaskConnection,
@@ -955,24 +970,6 @@ def create_all_table(database):
 def drop_and_create(database):
     drop_all_table(database)
     create_all_table(database)
-
-
-def get_current_user_object():
-    return Person.get(user_login=current_user)
-
-
-def get_current_permission():
-    current_permission_group = Person.get(user_login=current_user).permission_group
-    current_permission = current_permission_group.code
-    return current_permission
-
-
-if database.table_exists(Person._meta.table):
-    try:
-        current_user_object = get_current_user_object()
-        current_permission = get_current_permission()
-    except:
-        pass
 
 
 if __name__ == '__main__':

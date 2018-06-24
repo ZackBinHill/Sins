@@ -6,7 +6,7 @@ import sys
 import traceback
 from sins.module.sqt import *
 from sins.module.db import mysql, psycopg2
-from sins.ui.widgets.labelbutton import QLabelButton
+from sins.ui.widgets.label import QLabelButton
 from sins.utils.settings import Global_Setting, global_settings
 from sins.db.utils.const import database_type
 

@@ -4,3 +4,5 @@
 
 from .round_label import RoundLabel
 from .round_rect_label import RoundRectLabel
+from .labelbutton import QLabelButton
+from .thumbnail_label import ThumbnailLabel

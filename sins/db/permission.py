@@ -2,7 +2,8 @@
 # __author__ = 'XingHuan'
 # 6/16/2018
 
-from sins.db.models import Project, current_user, current_permission
+from sins.db.models import Project, current_user
+from sins.db.current import current_permission
 
 
 def get_permission_projects(user):
