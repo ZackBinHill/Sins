@@ -203,7 +203,7 @@ class PersonConfig(ModelConfig):
         self.db_model = Person
         self.in_fields = [
             InField(name='user_login', label='Login', group_enable=False),
-            InField(name='user_pwd', label='Password', inner_widget=PasswordEdit,
+            InField(name='user_pwd', label='Password', widget_attr_map={'password_mode': True},
                     group_enable=False, sort_enable=False),
             InField(name='first_name', label='First Name', edit_permission=['Root']),
             InField(name='last_name', label='Last Name', edit_permission=['Root']),
@@ -212,8 +212,12 @@ class PersonConfig(ModelConfig):
             InField(name='email', label='Email', edit_permission=['Root'], group_enable=False, sort_enable=False),
             InField(name='thumbnail', label='Thumbnail', inner_widget=CellThumbnail, edit_permission=['Root', 'Artist'],
                     column_width=70, group_enable=False, sort_enable=False),
-            InField(name='active', label='Status', inner_widget=ActiveBoolEdit, edit_permission=['Root'],
-                    column_width=70),
+            InField(name='active', label='Status',
+                    inner_widget=CellBoolEdit,
+                    widget_attr_map={'true_text': '<font color=green>active</font>',
+                                     'false_text': '<font color=red><SPAN style="TEXT-DECORATION: line-through">'
+                                                   'active</SPAN></font>'},
+                    edit_permission=['Root'], column_width=70),
             InField(name='join_date', label='Join Date',
                     inner_widget=CellDateEdit, edit_permission=['Root'],),
             InField(name='leave_date', label='Leave Date', inner_widget=CellDateEdit, edit_permission=['Root']),

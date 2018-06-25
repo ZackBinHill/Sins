@@ -85,7 +85,7 @@ field属性全部从config文件获取
 新的权限方法?
 多外键celledit
 单个外键celledit可编辑
-status icon referred_table 编辑
+# status icon referred_table 编辑 >暂时用text
 
 
 

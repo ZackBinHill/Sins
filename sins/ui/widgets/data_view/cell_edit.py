@@ -68,6 +68,7 @@ class CellWidget(QWidget):
         # self.setStyleSheet("border:none;background:transparent")
         self.back = QLabel(self)
         # self.back.setStyleSheet("background:rgb(100, 140, 100, 250)")
+        self.setMinimumHeight(20)
 
     def add_front(self, editlabel=True):
         self.has_edit_label = editlabel
@@ -132,8 +133,10 @@ class CellWidget(QWidget):
 
 # line edit
 class CellLineEdit(CellWidget):
-    def __init__(self, **kwargs):
+    def __init__(self, password_mode=False, **kwargs):
         super(CellLineEdit, self).__init__(**kwargs)
+        
+        self.password_mode = password_mode
 
         self.textLabel = QLabel('', self)
         self.textLabel.move(3, 3)
@@ -157,6 +160,8 @@ class CellLineEdit(CellWidget):
             elif isinstance(value, float):
                 self.textLabel.setText(str(value))
                 self.is_float = True
+            if self.password_mode:
+                self.textLabel.setText('******')
 
     def set_editable(self):
         if self.lineEdit is None:
@@ -175,7 +180,8 @@ class CellLineEdit(CellWidget):
 
     def set_no_editable(self):
         if self.lineEdit is not None:
-            self.data_value = u'{}'.format(self.lineEdit.text())
+            # self.data_value = u'{}'.format(self.lineEdit.text())
+            self.data_value = to_unicode(self.lineEdit.text())
             if self.is_float:
                 self.data_value = float(self.data_value)
             if self.is_int:
@@ -184,6 +190,8 @@ class CellLineEdit(CellWidget):
         self.textLabel.setVisible(True)
         # self.textLabel.setText(str(self.data_value))
         self.textLabel.setText(u'{}'.format(self.data_value))
+        if self.password_mode:
+            self.textLabel.setText('******')
 
     def resizeEvent(self, *args, **kwargs):
         super(CellLineEdit, self).resizeEvent(*args, **kwargs)
@@ -192,12 +200,12 @@ class CellLineEdit(CellWidget):
         self.textLabel.setFixedWidth(self.width())
 
 
-class PasswordEdit(CellLineEdit):
-    def __init__(self, **kwargs):
-        super(PasswordEdit, self).__init__(**kwargs)
-        self.textLabel.setText('******')
-    def set_value(self, value):
-        pass
+# class PasswordEdit(CellLineEdit):
+#     def __init__(self, **kwargs):
+#         super(PasswordEdit, self).__init__(**kwargs)
+#         self.textLabel.setText('******')
+#     def set_value(self, value):
+#         pass
 
 
 # text edit
@@ -416,11 +424,11 @@ class CellThumbnail(CellWidget):
 
 # bool
 class CellBoolEdit(CellWidget):
-    def __init__(self, **kwargs):
+    def __init__(self, true_text='true', false_text='false', **kwargs):
         super(CellBoolEdit, self).__init__(**kwargs)
 
-        self.trueText = 'true'
-        self.falseText = 'false'
+        self.true_text = true_text
+        self.false_text = false_text
 
         self.statusLabel = QLabel(self)
         self.statusLabel.setAlignment(Qt.AlignCenter)
@@ -433,7 +441,7 @@ class CellBoolEdit(CellWidget):
     def set_value(self, value):
         if value is not None:
             self.data_value = value
-            self.statusLabel.setText(self.trueText if value else self.falseText)
+            self.statusLabel.setText(self.true_text if value else self.false_text)
 
     def set_editable(self):
         if self.boolCheck is None:
@@ -447,7 +455,7 @@ class CellBoolEdit(CellWidget):
         if self.boolCheck is not None:
             self.data_value = self.boolCheck.isChecked()
             self.boolCheck.setVisible(False)
-        self.statusLabel.setText(self.trueText if self.data_value else self.falseText)
+        self.statusLabel.setText(self.true_text if self.data_value else self.false_text)
         self.statusLabel.setVisible(True)
 
     def resizeEvent(self, *args, **kwargs):
@@ -455,11 +463,11 @@ class CellBoolEdit(CellWidget):
         self.statusLabel.setFixedWidth(self.width())
 
 
-class ActiveBoolEdit(CellBoolEdit):
-    def __init__(self, **kwargs):
-        super(ActiveBoolEdit, self).__init__(**kwargs)
-        self.trueText = '<font color=green>active</font>'
-        self.falseText = '<font color=red><SPAN style="TEXT-DECORATION: line-through">active</SPAN></font>'
+# class ActiveBoolEdit(CellBoolEdit):
+#     def __init__(self, **kwargs):
+#         super(ActiveBoolEdit, self).__init__(**kwargs)
+#         self.true_text = '<font color=green>active</font>'
+#         self.false_text = '<font color=red><SPAN style="TEXT-DECORATION: line-through">active</SPAN></font>'
 
 
 # date
