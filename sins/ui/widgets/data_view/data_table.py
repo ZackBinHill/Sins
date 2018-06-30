@@ -12,6 +12,7 @@ from sins.db.permission import is_editable
 import sys
 import copy
 import math
+import time
 
 
 logger = get_logger(__name__)
@@ -86,7 +87,7 @@ class BaseTree(QTreeWidget):
         # print db_instance
         if db_instance is not None:
             prefix = '{}>{}'.format(prefix, config.config_name) if prefix is not None else config.config_name
-            for index, field in enumerate(config.first_fields()):
+            for index, field in enumerate(config.first_fields):
                 # data.update({'{}>{}'.format(prefix, field.name): getattr(db_instance, field.model_attr)})
                 data.update({'{}>{}'.format(prefix, field.name): {'value': getattr(db_instance, field.model_attr),
                                                                   'db_instance': db_instance}})
@@ -327,24 +328,25 @@ class BaseTree(QTreeWidget):
             field_name += '{}>'.format(config_name)
         field_name += field.name
 
-        cellWidgetName = field.inner_widget
-        # editable = True if current_permission in field.edit_permission else False
-        # editable = is_editable(field, data, field_name)
-        cellWidget = cellWidgetName(treeitem=item,
-                                    column=index,
-                                    model_attr=field.model_attr,
-                                    column_label=field.label,
-                                    parent=self,
-                                    **field.widget_attr_map)
-        # print 'add field:', cellWidget, child.data[field.name]
+        # cellWidgetName = field.inner_widget
+        # # editable = True if current_permission in field.edit_permission else False
+        # # editable = is_editable(field, data, field_name)
+        # cellWidget = cellWidgetName(treeitem=item,
+        #                             column=index,
+        #                             model_attr=field.model_attr,
+        #                             column_label=field.label,
+        #                             parent=self,
+        #                             **field.widget_attr_map)
+        # # print 'add field:', cellWidget, child.data[field.name]
+        cellWidget = field.create_widget(treeitem=item, column=index, parent=self)
 
         if field_name in data.keys():
             cellWidget.set_value(data[field_name]['value'])
             cellWidget.set_db_instance(data[field_name]['db_instance'])
             cellWidget.set_read_only(is_editable(editable_permission=field.edit_permission,
                                                  db_instance=data[field_name]['db_instance']))
-        if not field.readonly:
-            cellWidget.add_front()
+        # if not field.readonly:
+        #     cellWidget.add_front()
         self.setItemWidget(item, index, cellWidget)
         # self.tempItemWidgets.append([item, index, cellWidget])
 

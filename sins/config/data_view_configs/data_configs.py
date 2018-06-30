@@ -2,146 +2,7 @@
 # __author__ = 'XingHuan'
 # 4/30/2018
 
-# from sins.db.models import *
-from sins.ui.widgets.data_view.cell_edit import *
-from sins.module.time_utils import datetime_to_date
-
-
-DEFAULT_INNER_WIDGET = CellLineEdit
-DEFAULT_COLUMN_WIDTH = 100
-
-
-class InField(object):
-    def __init__(self,
-                 name='',
-                 label='',
-                 model_attr=None,
-                 inner_widget=DEFAULT_INNER_WIDGET,
-                 widget_attr_map={},
-                 column_width=100,
-                 edit_permission=[],
-                 filter_enable='',
-                 sort_enable=True,
-                 group_enable=True,
-                 group_attr=None,
-                 pre_group_func=None,
-                 ):
-        super(InField, self).__init__()
-
-        self.name = name
-        self.label = label
-        self.model_attr = model_attr if model_attr is not None else name
-        self.readonly = True if len(edit_permission) == 0 else False
-        self.inner_widget = inner_widget
-        self.widget_attr_map = widget_attr_map
-        self.column_width = column_width
-        self.edit_permission = edit_permission
-        self.filter_enable = filter_enable
-        self.group_enable = group_enable
-        self.group_attr = group_attr if group_attr is not None else name
-        self.pre_group_func = pre_group_func
-        self.sort_enable = sort_enable
-        self.sort_attr = self.group_attr
-
-        self.parent_configs = []
-        self.label_prefix = ''
-
-
-class OutField(object):
-    def __init__(self,
-                 name=None,
-                 field_label='',
-                 model_attr=None,
-                 config=None,
-                 ):
-        super(OutField, self).__init__()
-
-        self.name = name if name is not None else config.config_name
-        self.field_label = field_label
-        self.model_attr = model_attr if model_attr is not None else self.name
-        self.config = config
-
-
-class ModelConfig(object):
-    def __init__(self, config_name='', db_model=None, connection_model=None):
-        super(ModelConfig, self).__init__()
-
-        self.config_name = config_name
-        self.db_model = db_model
-        self.connection_model = connection_model
-        self.prefetch_config = []
-        self.add_permission = 'Root'
-        self.origin_fields = [
-            InField(name='id', label='Id'),
-            InField(name='created_date', label='Created Date',
-                    inner_widget=CellDateEdit, pre_group_func=datetime_to_date),
-            InField(name='update_date', label='Update Date',
-                    inner_widget=CellDateEdit, pre_group_func=datetime_to_date),
-            InField(name='created_by', label='Created By'),
-            InField(name='update_by', label='Update By'),
-        ]
-        self.in_fields = []
-        self.out_fields = []
-        self.default_fields = []
-        self.default_filters = ''
-        self.default_sort = [{'field_name': '{}>created_date'.format(self.config_name), 'reverse': False}]
-        self.default_groups = []
-
-    def refine_default_fields(self):
-        for index, field_name in enumerate(self.default_fields):
-            if len(field_name.split('>')) == 1:
-                field_name = self.config_name + '>' + field_name
-                self.default_fields[index] = field_name
-        # print self.default_fields
-
-    def first_fields(self):
-        field_list = []
-        field_list.extend(self.origin_fields)
-        field_list.extend(self.in_fields)
-        return field_list
-
-    def find_out_field(self, field_name):
-        for field in self.out_fields:
-            if field.name == field_name:
-                return field
-
-    def find_field(self, field_name):
-        split_list = field_name.split('>')
-        # print split_list
-        if len(split_list) == 1:
-            for field in self.first_fields():
-                if field.name == field_name:
-                    field.parent_configs = [self.config_name]
-                    return field
-        elif len(split_list) == 2:
-            for field in self.first_fields():
-                # print field.name
-                if field.name == split_list[1]:
-                    field.parent_configs = [self.config_name]
-                    return field
-        else:
-            current_config = self
-            label_prefix = ''
-            for config_name in split_list[1:-1]:
-                out_field = current_config.find_out_field(config_name)
-                current_config = out_field.config
-                label_prefix += '{}>'.format(out_field.field_label)
-            field = current_config.find_field(split_list[-1])
-            field.parent_configs = split_list[:-1]
-            field.label_prefix = label_prefix
-            return field
-
-    def update_preference(self):
-        pass
-
-
-class PrefetchConfig(object):
-    def __init__(self, db_model=None, connection_model=None, prefetch_config = []):
-        super(PrefetchConfig, self).__init__()
-
-        self.db_model = db_model
-        self.connection_model = connection_model
-        self.prefetch_config = prefetch_config
+from .config import *
 
 
 class DepartmentConfig(ModelConfig):
@@ -149,7 +10,7 @@ class DepartmentConfig(ModelConfig):
         super(DepartmentConfig, self).__init__(config_name='department', **kwargs)
 
         self.db_model = Department
-        self.in_fields = [
+        self._in_fields = [
             InField(name='code', label='Code', edit_permission=['Root']),
             InField(name='full_name', label='Full Name', edit_permission=['Root'],
                     group_enable=False, sort_enable=False),
@@ -181,7 +42,7 @@ class PermissionGroupConfig(ModelConfig):
         super(PermissionGroupConfig, self).__init__(config_name='permission_group', **kwargs)
 
         self.db_model = PermissionGroup
-        self.in_fields = [
+        self._in_fields = [
             InField(name='code', label='Code'),
             InField(name='description', label='Description', inner_widget=CellTextEdit,
                     group_enable=False, sort_enable=False),
@@ -201,7 +62,7 @@ class PersonConfig(ModelConfig):
         super(PersonConfig, self).__init__(config_name='person', **kwargs)
 
         self.db_model = Person
-        self.in_fields = [
+        self._in_fields = [
             InField(name='user_login', label='Login', group_enable=False),
             InField(name='user_pwd', label='Password', widget_attr_map={'password_mode': True},
                     group_enable=False, sort_enable=False),
@@ -270,7 +131,7 @@ class StatusConfig(ModelConfig):
         super(StatusConfig, self).__init__(config_name='status', **kwargs)
 
         self.db_model = Status
-        self.in_fields = [
+        self._in_fields = [
             InField(name='name', label='Name', model_attr='name', edit_permission=['Root']),
             InField(name='full_name', label='Full Name', model_attr='full_name', edit_permission=['Root'],
                     group_enable=False),
@@ -292,7 +153,7 @@ class ProjectConfig(ModelConfig):
         super(ProjectConfig, self).__init__(config_name='project', **kwargs)
 
         self.db_model = Project
-        self.in_fields = [
+        self._in_fields = [
             InField(name='code', label='Code'),
             InField(name='full_name', label='Full Name', group_enable=False, edit_permission=['Root']),
             InField(name='description', label='Description', inner_widget=CellTextEdit,
@@ -323,7 +184,7 @@ class GroupConfig(ModelConfig):
         super(GroupConfig, self).__init__(config_name='group', **kwargs)
 
         self.db_model = Group
-        self.in_fields = [
+        self._in_fields = [
             InField(name='code', label='Code', edit_permission=['Root']),
             InField(name='full_name', label='Full Name', group_enable=False,
                     edit_permission=['Root']),
@@ -343,7 +204,7 @@ class PipelineStepConfig(ModelConfig):
         super(PipelineStepConfig, self).__init__(config_name='pipeline_step', **kwargs)
 
         self.db_model = PipelineStep
-        self.in_fields = [
+        self._in_fields = [
             InField(name='name', label='Name', edit_permission=['Root']),
             InField(name='full_name', label='Full Name', edit_permission=['Root'],
                     group_enable=False, sort_enable=False),
@@ -366,7 +227,7 @@ class SequenceConfig(ModelConfig):
         super(SequenceConfig, self).__init__(config_name='sequence', **kwargs)
 
         self.db_model = Sequence
-        self.in_fields = [
+        self._in_fields = [
             InField(name='name', label='Name', edit_permission=['Root']),
             InField(name='description', label='Description', inner_widget=CellTextEdit, edit_permission=['Root'],
                     group_enable=False, sort_enable=False),
@@ -389,7 +250,7 @@ class AssetTypeConfig(ModelConfig):
         super(AssetTypeConfig, self).__init__(config_name='asset_type', **kwargs)
 
         self.db_model = AssetType
-        self.in_fields = [
+        self._in_fields = [
             InField(name='name', label='Name', edit_permission=['Root']),
             InField(name='description', label='Description', inner_widget=CellTextEdit, edit_permission=['Root'],
                     group_enable=False, sort_enable=False),
@@ -412,7 +273,7 @@ class TagConfig(ModelConfig):
         super(TagConfig, self).__init__(config_name='tag', **kwargs)
 
         self.db_model = Tag
-        self.in_fields = [
+        self._in_fields = [
             InField(name='name', label='Name', edit_permission=['Root']),
             InField(name='description', label='Description', inner_widget=CellTextEdit, edit_permission=['Root'],
                     group_enable=False, sort_enable=False),
@@ -435,7 +296,7 @@ class AssetConfig(ModelConfig):
         super(AssetConfig, self).__init__(config_name='asset', **kwargs)
 
         self.db_model = Asset
-        self.in_fields = [
+        self._in_fields = [
             InField(name='name', label='Name', edit_permission=['Root']),
             InField(name='description', label='Description', inner_widget=CellTextEdit, edit_permission=['Root'],
                     group_enable=False, sort_enable=False),
@@ -471,7 +332,7 @@ class ShotConfig(ModelConfig):
         super(ShotConfig, self).__init__(config_name='shot', **kwargs)
 
         self.db_model = Shot
-        self.in_fields = [
+        self._in_fields = [
             InField(name='name', label='Name', edit_permission=['Root']),
             InField(name='description', label='Description', inner_widget=CellTextEdit, edit_permission=['Root'],
                     group_enable=False, sort_enable=False),
@@ -526,7 +387,7 @@ class TaskConfig(ModelConfig):
         super(TaskConfig, self).__init__(config_name='task', **kwargs)
 
         self.db_model = Task
-        self.in_fields = [
+        self._in_fields = [
             InField(name='name', label='Name', edit_permission=['Root']),
             InField(name='description', label='Description', inner_widget=CellTextEdit, edit_permission=['Root'],
                     group_enable=False, sort_enable=False),

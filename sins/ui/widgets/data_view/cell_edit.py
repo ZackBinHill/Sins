@@ -16,7 +16,7 @@ import sys
 logger = get_logger(__name__)
 
 EDITLABEL_SIZE = 20
-OBJECT_ICON_SIZE = 20
+OBJECT_ICON_SIZE = 17
 scrollbar_style = resource.get_style('scrollbar')
 
 
@@ -68,7 +68,7 @@ class CellWidget(QWidget):
         # self.setStyleSheet("border:none;background:transparent")
         self.back = QLabel(self)
         # self.back.setStyleSheet("background:rgb(100, 140, 100, 250)")
-        self.setMinimumHeight(20)
+        self.setMinimumHeight(22)
 
     def add_front(self, editlabel=True):
         self.has_edit_label = editlabel
@@ -353,6 +353,7 @@ class CellThumbnail(CellWidget):
         super(CellThumbnail, self).__init__(**kwargs)
 
         self.autoHeight = True
+        self.auto_resize = True
         self.update_geo = False
 
         self.thumbnailPath = ''
@@ -402,9 +403,10 @@ class CellThumbnail(CellWidget):
     def load_done(self):
         self.set_size()
         # print 'load done'
-        self.treeitem.tree.section_resized(index=self.column)
-        if self.update_geo:
-            self.treeitem.tree.updateGeometries()
+        if self.treeitem is not None:
+            self.treeitem.tree.section_resized(index=self.column)
+            if self.update_geo:
+                self.treeitem.tree.updateGeometries()
         self.update_geo = False
 
     def resizeEvent(self, *args, **kwargs):
@@ -415,8 +417,11 @@ class CellThumbnail(CellWidget):
         self.thumbnailLabel.setFixedWidth(self.width())
         self.thumbnailLabel.set_resize_size()
         targetHeight = self.thumbnailLabel.targetHeight
-        if targetHeight == 0:
-            targetHeight = 20
+        if self.auto_resize:
+            if targetHeight == 0:
+                targetHeight = 20
+        else:
+            targetHeight = self.height()
         self.thumbnailLabel.setFixedHeight(targetHeight)
         self.setFixedHeight(targetHeight)
         self.targetHeight = targetHeight
@@ -924,7 +929,7 @@ class StatusChooseEdit(CellChooseEdit):
         # self.chooseList = get_status_choose_list()
         self.chooseListFunc = 'get_status_choose_list'
         self.chooseListFuncArgs = {'model':model}
-        self.chooseList = get_class_from_name_data('sins.ui.widgets.table.cell_edit',
+        self.chooseList = get_class_from_name_data('sins.ui.widgets.data_view.cell_edit',
                                                               'loaded_{}_status'.
                                                               format(model.lower()))
         self.comboWidth = 250
@@ -1017,7 +1022,7 @@ class CellSingleObjectEdit(CellWidget):
             )
             if hasattr(db_object, 'status'):
                 status = db_object.status
-                loaded_status_list = get_class_from_name_data('sins.ui.widgets.table.cell_edit',
+                loaded_status_list = get_class_from_name_data('sins.ui.widgets.data_view.cell_edit',
                                                               'loaded_{}_status'.
                                                               format(db_object.__class__.__name__.lower()))
                 status_icon = get_choose(loaded_status_list, status).icon
@@ -1191,7 +1196,7 @@ class CellMultiObjectEdit(CellWidget):
                     )
                 if hasattr(db_object, 'status'):
                     status = db_object.status
-                    loaded_status_list = get_class_from_name_data('sins.ui.widgets.table.cell_edit',
+                    loaded_status_list = get_class_from_name_data('sins.ui.widgets.data_view.cell_edit',
                                                                   'loaded_{}_status'.
                                                                   format(db_object.__class__.__name__.lower()))
                     status_icon = get_choose(loaded_status_list, status).icon

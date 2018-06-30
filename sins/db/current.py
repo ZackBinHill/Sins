@@ -2,7 +2,7 @@
 # __author__ = 'XingHuan'
 # 6/24/2018
 
-from sins.db.models import Person, current_user
+from sins.db.models import Person, current_user, database
 
 
 def get_current_user_instance():
@@ -15,6 +15,7 @@ def get_current_permission():
     return permission
 
 
-current_user_object = get_current_user_instance()
-current_permission = get_current_permission()
+if database.table_exists(Person._meta.table):
+    current_user_object = get_current_user_instance()
+    current_permission = get_current_permission()
 

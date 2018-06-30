@@ -4,13 +4,11 @@
 
 import sys
 from sins.module.sqt import *
-from sins.ui.widgets.label import ThumbnailLabel
-from sins.ui.widgets.tab.tab import TabWidget
 from sins.ui.widgets.tab.custom_tab import CustomTabWindow, DefaultTabButton
 from sins.ui.widgets.tab.property_widget import PropertyWidget
 from sins.ui.widgets.data_view.data_table import DataWidget
-from sins.config.data_view_configs import ShotConfig
-from sins.test.test_res import TestMov
+from sins.ui.main.detail import DetailTemplate, DetailWidget
+from sins.config.data_view_configs import ShotConfig, TaskConfig
 from sins.db.models import *
 
 
@@ -28,7 +26,6 @@ class ShotDetailWindow(PropertyWidget):
         self.init_ui()
 
     def init_ui(self):
-
         self.seqCombobox = QComboBox()
         self.seqCombobox.addItems(["02", "03", "04"])
         self.shotCombobox = QComboBox()
@@ -40,73 +37,21 @@ class ShotDetailWindow(PropertyWidget):
         self.shotChooseLayout.addWidget(self.goButton)
         self.shotChooseLayout.addStretch()
 
-        self.shotInfoWidget = ShotInfoWidget(self)
-        self.shotInfoArea = QScrollArea()
-        self.shotInfoArea.setWidget(self.shotInfoWidget)
-        self.shotInfoArea.setWidgetResizable(True)
-        self.shotTabs = ShotTabWindow()
+        self.detailWidget = DetailTemplate()
+        self.detailWidget.load_config(ShotConfig())
+        task_data_table = DataWidget(parent=self)
+        task_data_table.load_config(config=TaskConfig())
+        dailies_data_table = DataWidget(parent=self)
+        publish_data_table = DataWidget(parent=self)
+        note_data_table = DataWidget(parent=self)
+        all_detail_widget = DetailWidget(parent=self)
+        self.detailWidget.add_tab(widget=task_data_table, label='Tasks')
+        self.detailWidget.init_ui()
 
-        self.splitter = QSplitter()
-        self.splitter.setHandleWidth(3)
-        self.splitter.setOrientation(Qt.Vertical)
-        self.splitter.addWidget(self.shotInfoArea)
-        self.splitter.addWidget(self.shotTabs)
         self.masterLayout = QVBoxLayout()
         self.masterLayout.addLayout(self.shotChooseLayout)
-        self.masterLayout.addWidget(self.splitter)
+        self.masterLayout.addWidget(self.detailWidget)
         self.setLayout(self.masterLayout)
-
-        styleText = resource.get_style("shots")
-        self.setStyleSheet(styleText)
-
-
-class ShotInfoWidget(QWidget):
-    def __init__(self, parent=None):
-        super(ShotInfoWidget, self).__init__(parent)
-
-        self.shotPreview = ThumbnailLabel()
-        self.shotPreview.create_preview(TestMov("test3.mov"))
-        self.shotPreview.setFixedSize(220, 220 *9.0 / 16)
-        self.layout1 = QHBoxLayout()
-        self.layout12 = QVBoxLayout()
-        self.label1 = QLabel("aaa")
-        self.label2 = QLabel("aaa")
-        self.label3 = QLabel("aaa")
-        self.label4 = QLabel("aaa")
-        self.layout12.addWidget(self.label1)
-        self.layout12.addWidget(self.label2)
-        self.layout12.addWidget(self.label3)
-        self.layout12.addWidget(self.label4)
-        self.layout1.addWidget(self.shotPreview)
-        self.layout1.addLayout(self.layout12)
-
-        self.shotDescription = QTextEdit()
-        self.shotDescription.setPlainText("aa\naaa\naaaaaaaa\naaa\naaa\na")
-        self.shotDescription.document().adjustSize()
-        self.shotDescription.setFixedHeight(self.shotDescription.document().size().height())
-        self.shotDescription.setReadOnly(True)
-
-
-        self.masterLayout = QVBoxLayout()
-        self.masterLayout.addLayout(self.layout1)
-        self.masterLayout.addWidget(self.shotDescription)
-        self.masterLayout.addStretch()
-        self.setLayout(self.masterLayout)
-
-        self.setObjectName("ShotInfoWidget")
-
-
-class ShotTabWindow(TabWidget):
-    def __init__(self):
-        super(ShotTabWindow, self).__init__()
-
-        self.setObjectName("ShotTabWindow")
-        self.tabBar().setObjectName("ShotTabWindow_TabBar")
-
-        self.addTab(QLabel("Task"), "Task")
-        self.addTab(QLabel("Dailies"), "Dailies")
-        self.addTab(QLabel("Publish"), "Publish")
-        self.addTab(QLabel("Note"), "Note")
 
 
 class ShotAllWindow(PropertyWidget):
@@ -116,6 +61,7 @@ class ShotAllWindow(PropertyWidget):
         self.coreproperty_list = ['showId']
 
         self.dataTable = DataWidget(parent=self)
+        self.dataTable.load_config(config=ShotConfig())
 
         self.masterLayout = QVBoxLayout()
         self.masterLayout.setContentsMargins(0, 0, 0, 0)
@@ -132,7 +78,7 @@ class ShotAllWindow(PropertyWidget):
 
     def update_data(self):
         # print 'update data'
-        self.dataTable.load_config(config=ShotConfig())
+        # self.dataTable.load_config(config=ShotConfig())
         self.dataTable.refresh()
 
 
