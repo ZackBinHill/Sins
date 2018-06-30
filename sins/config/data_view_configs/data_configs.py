@@ -3,6 +3,7 @@
 # 4/30/2018
 
 from .config import *
+from sins.db.models import *
 
 
 class DepartmentConfig(ModelConfig):

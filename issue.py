@@ -86,7 +86,8 @@ field属性全部从config文件获取
 多外键celledit
 单个外键celledit可编辑
 # status icon referred_table 编辑 >暂时用text
-cell_edit.py分文件
+# cell_edit.py分文件
+style统一为常量
 
 
 
